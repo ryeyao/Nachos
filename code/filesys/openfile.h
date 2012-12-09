@@ -50,6 +50,7 @@ class OpenFile {
 		currentOffset += numWritten;
 		return numWritten;
 		}
+    int GetFileDescriptor() { return file; }
 
     int Length() { Lseek(file, 0, 2); return Tell(file); }
     
@@ -85,10 +86,14 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
+    int GetFileDescriptor() { return hdrSector; }
     
   private:
-    FileHeader *hdr;			// Header for this file 
+    FileHeader *hdr;			// Header for this file
+    int hdrSector;				// Header sector number of this file
     int seekPosition;			// Current position within the file
+
+
 };
 
 #endif // FILESYS

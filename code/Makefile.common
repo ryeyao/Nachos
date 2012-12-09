@@ -25,7 +25,9 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
-CFLAGS = -g -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED 
+# Modified by Rye
+# remove -fwritable-strings from CFLAGS
+CFLAGS = -g -Wno-write-strings -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED 
 
 # These definitions may change as the software is updated.
 # Some of them are also system dependent
@@ -42,6 +44,10 @@ THREAD_H =../threads/copyright.h\
 	../threads/synch.h \
 	../threads/synchlist.h\
 	../threads/system.h\
+	../threads/synctest.h\
+	../threads/scheduleralogrithms.h\
+	../threads/ts.h\
+	../threads/tid.h\
 	../threads/thread.h\
 	../threads/utility.h\
 	../machine/interrupt.h\
@@ -55,6 +61,10 @@ THREAD_C =../threads/main.cc\
 	../threads/synch.cc \
 	../threads/synchlist.cc\
 	../threads/system.cc\
+	../threads/synctest.cc\
+	../threads/scheduleralogrithms.cc\
+	../threads/ts.cc\
+	../threads/tid.cc\
 	../threads/thread.cc\
 	../threads/utility.cc\
 	../threads/threadtest.cc\
@@ -65,11 +75,12 @@ THREAD_C =../threads/main.cc\
 
 THREAD_S = ../threads/switch.s
 
-THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o \
+THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o tid.o ts.o scheduleralogrithms.o synctest.o\
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
+	../userprog/synchconsole.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\
@@ -79,6 +90,7 @@ USERPROG_H = ../userprog/addrspace.h\
 
 USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/bitmap.cc\
+	../userprog/synchconsole.cc\
 	../userprog/exception.cc\
 	../userprog/progtest.cc\
 	../machine/console.cc\
@@ -87,7 +99,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../machine/translate.cc
 
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
-	mipssim.o translate.o
+	mipssim.o translate.o synchconsole.o
 
 VM_H = 
 VM_C = 
@@ -98,6 +110,7 @@ FILESYS_H =../filesys/directory.h \
 	../filesys/filesys.h \
 	../filesys/openfile.h\
 	../filesys/synchdisk.h\
+	../filesys/inode.h\
 	../machine/disk.h
 FILESYS_C =../filesys/directory.cc\
 	../filesys/filehdr.cc\
@@ -105,8 +118,9 @@ FILESYS_C =../filesys/directory.cc\
 	../filesys/fstest.cc\
 	../filesys/openfile.cc\
 	../filesys/synchdisk.cc\
+	../filesys/inode.cc\
 	../machine/disk.cc
-FILESYS_O =directory.o filehdr.o filesys.o fstest.o openfile.o synchdisk.o\
+FILESYS_O =directory.o filehdr.o filesys.o fstest.o openfile.o synchdisk.o inode.o\
 	disk.o
 
 NETWORK_H = ../network/post.h ../machine/network.h

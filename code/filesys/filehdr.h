@@ -15,11 +15,45 @@
 #define FILEHDR_H
 
 #include "disk.h"
-#include "bitmap.h"
+#include "time.h"//temperately use UNIX time.
+#include "inode.h"
 
-#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
-#define MaxFileSize 	(NumDirect * SectorSize)
+//Number of indexes in a header
+#define NumDirect ((SectorSize - 4*sizeof(int) - 3*sizeof(int))/sizeof(int))
+#define NumSingle (SectorSize/sizeof(int) - NumDirect - 1 - 1)// is 1
+#define NumDouble (SectorSize/sizeof(int) - NumDirect - NumSingle - 1)// is 1
+#define NumTriple (SectorSize/sizeof(int) - NumDirect - NumSingle - NumDouble)// is 1
 
+#define MaxDirectSize NumDirect
+#define MaxSingleSize (SectorSize/sizeof(int))
+#define MaxDoubleSize (MaxSingleSize * SectorSize/sizeof(int))
+#define MaxTripleSize (MaxDoubleSize * SectorSize/sizeof(int))
+#define MaxFileSize 	((NumDirect + MaxSingleSize + MaxDoubleSize + MaxTripleSize) * SectorSize)//but nachos only support 128k address space
+
+#define MaxDirectorySize 200
+#define MaxFileNum NumSectors
+/*
+ * File types
+ *
+ * NOTE! These match bits 12..15 of stat.st_mode
+ * (ie "(i_mode >> 12) & 15").
+ */
+#define DT_NORMAL       0
+#define DT_FIFO         1
+#define DT_DISKBITMAP   2
+#define DT_DIR          3
+#define DT_INODE				4
+#define DT_BLK          6
+#define DT_REG          8
+#define DT_LNK          10
+#define DT_SOCK         12
+#define DT_WHT          14
+
+#define FreeMapFileSize 	(NumSectors / BitsInByte)
+#define NumDirEntries 		10
+#define DirectoryFileSize 	(sizeof(DirectoryEntry) * NumDirEntries)
+
+extern BitMap* currentFreeMap;
 // The following class defines the Nachos "file header" (in UNIX terms,  
 // the "i-node"), describing where on disk to find all of the data in the file.
 // The file header is organized as a simple table of pointers to
@@ -36,31 +70,50 @@
 // reading it from disk.
 
 class FileHeader {
-  public:
-    bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
-						//  including allocating space 
-						//  on disk for the file data
-    void Deallocate(BitMap *bitMap);  		// De-allocate this file's 
-						//  data blocks
+public:
+	FileHeader();
+	bool Allocate(BitMap *bitMap, int fileType, int parentSector);// Initialize a file header,
+	//  including allocating space
+	//  on disk for the file data
+	bool Append(int bytesToBeAdded);
+	void Deallocate(BitMap *bitMap);  		// De-allocate this file's
+	//  data blocks
 
-    void FetchFrom(int sectorNumber); 	// Initialize file header from disk
-    void WriteBack(int sectorNumber); 	// Write modifications to file header
-					//  back to disk
+	void FetchFrom(int sectorNumber); 	// Initialize file header from disk
+	void WriteBack(int sectorNumber); 	// Write modifications to file header
+	//  back to disk
 
-    int ByteToSector(int offset);	// Convert a byte offset into the file
-					// to the disk sector containing
-					// the byte
+	int ByteToSector(int offset);	// Convert a byte offset into the file
+	// to the disk sector containing
+	// the byte
+	int ByteToINodeSector(int offset);
+	int FileLength();			// Return the length of the file
+	int getFileType() { return fileType; }
+	void IncFileLength(int bytesToAdd, int sectorsToAdd) { numBytes += bytesToAdd; numSectors += sectorsToAdd; }
+	void DecFileLength(int bytesToDel, int sectorsToDel) {
+		ASSERT(bytesToDel <= numBytes && sectorsToDel <= numSectors);
+		numBytes -= bytesToDel;
+		numSectors -= sectorsToDel;
+	}
+	// in bytes
+	int FreeSpace();
 
-    int FileLength();			// Return the length of the file 
-					// in bytes
+	void Print();			// Print the contents of the file.
 
-    void Print();			// Print the contents of the file.
+private:
+	int numBytes;			// Number of bytes in the file
+	int numSectors;			// Number of data sectors in the file
+	int fileType;
+	int parentSector;
 
-  private:
-    int numBytes;			// Number of bytes in the file
-    int numSectors;			// Number of data sectors in the file
-    int dataSectors[NumDirect];		// Disk sector numbers for each data 
-					// block in the file
+	int dataSectors[NumDirect];		// Disk sector numbers for each data. Direct index.
+	// If one of the three below is -1 that means there has no more data.
+	int singleIndex;
+	int doubleIndex;
+	int tripleIndex;
+
+	// The vars below would not be wrote back to disk
+	//int currentFreeMap = 0;
 };
 
 #endif // FILEHDR_H

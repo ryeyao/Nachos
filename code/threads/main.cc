@@ -61,7 +61,7 @@ extern int testnum;
 
 extern void ThreadTest(int), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
-extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
+extern void StartProcess(char *file), ConsoleTest(char *in, char *out), SynchConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 
 //----------------------------------------------------------------------
@@ -94,10 +94,10 @@ main(int argc, char **argv)
 	char **argValue;
 	argValue = argv;
 #ifdef THREADS
-//	printf("THREADS is defined.>>>>>>>>>>>>\n");
+	//	printf("THREADS is defined.>>>>>>>>>>>>\n");
 	for (count--, argValue++; count > 0; count -= argCount, argValue += argCount) {
 		argCount = 1;
-//		printf("1argc is %d>>>>>>>>>>>>\n",count);
+		//		printf("1argc is %d>>>>>>>>>>>>\n",count);
 		switch (argValue[0][1]) {
 		case 'q':
 			testnum = atoi(argValue[1]);
@@ -108,8 +108,8 @@ main(int argc, char **argv)
 			break;
 		}
 	}
-//	printf("2argc is %d>>>>>>>>>>>>\n",count);
-//	ThreadTest(10);
+	//	printf("2argc is %d>>>>>>>>>>>>\n",count);
+	//	ThreadTest(10);
 	//testBarrier();
 	//producer_consumer_semaphore();
 	//producer_consumer_cv_lock();
@@ -119,13 +119,13 @@ main(int argc, char **argv)
 #endif
 	//test time.h
 	time_t lt;
-//	struct tm *time_tm;
-//	long int timer_my;
+	//	struct tm *time_tm;
+	//	long int timer_my;
 	char *timeString;
 
-//	timer_my = time(&time_v.tv_sec);
-//	time_tm = localtime(&timer_my);
-//	timeString = asctime(time_tm);
+	//	timer_my = time(&time_v.tv_sec);
+	//	time_tm = localtime(&timer_my);
+	//	timeString = asctime(time_tm);
 	lt = time(NULL);
 	timeString = ctime(&lt);
 	printf("****Current time is:%s",timeString);
@@ -133,7 +133,7 @@ main(int argc, char **argv)
 	argValue = argv;
 	for (count--, argValue++; count > 0; count -= argCount, argValue += argCount) {
 		argCount = 1;
-//		printf("Step into the 2nd for.>>>>>>>>>>>>\n");
+		//		printf("Step into the 2nd for.>>>>>>>>>>>>\n");
 		if (!strcmp(*argValue, "-z"))               // print copyright
 			printf("Print copyright\n");
 		printf (copyright);
@@ -143,9 +143,10 @@ main(int argc, char **argv)
 			StartProcess(*(argValue + 1));
 			argCount = 2;
 		} else if (!strcmp(*argValue, "-c")) {      // test the console
-			if (count == 1)
+			if (count == 1) {
+//				char *input = "Test console input.";
 				ConsoleTest(NULL, NULL);
-			else {
+			} else {
 				ASSERT(count > 2);
 				ConsoleTest(*(argValue + 1), *(argValue + 2));
 				argCount = 3;
@@ -154,13 +155,25 @@ main(int argc, char **argv)
 			interrupt->Halt();		// once we start the console, then
 			// Nachos will loop forever waiting
 			// for console input
+		} else if (!strcmp(*argValue, "-sc")) {      // test the synchConsole
+			if (count == 1) {
+				SynchConsoleTest(NULL, NULL);
+			} else {
+				ASSERT(count > 2);
+				SynchConsoleTest(*(argValue + 1), *(argValue + 2));
+				argCount = 3;
+			}
+			printf("(Synchronously)Waiting for commands...\n");
+			interrupt->Halt();		// once we start the console, then
+			// Nachos will loop forever waiting
+			// for console input
 		}
 #endif // USER_PROGRAM
-//#ifndef FILESYS
-//#define FILESYS
-//#endif
+		//#ifndef FILESYS
+		//#define FILESYS
+		//#endif
 #ifdef FILESYS
-//		printf("Step into FILESYS, argc is %d>>>>>>>>>>>>>>>\n",count);
+		//		printf("Step into FILESYS, argc is %d>>>>>>>>>>>>>>>\n",count);
 		if (!strcmp(*argValue, "-cp")) { 		// copy from UNIX to Nachos
 			ASSERT(count > 2);
 			Copy(*(argValue + 1), *(argValue + 2));

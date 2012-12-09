@@ -35,9 +35,9 @@
 
 Semaphore::Semaphore(char* debugName, int initialValue)
 {
-    name = debugName;
-    value = initialValue;
-    queue = new List;
+	name = debugName;
+	value = initialValue;
+	queue = new List;
 }
 
 //----------------------------------------------------------------------
@@ -48,7 +48,7 @@ Semaphore::Semaphore(char* debugName, int initialValue)
 
 Semaphore::~Semaphore()
 {
-    delete queue;
+	delete queue;
 }
 
 //----------------------------------------------------------------------
@@ -66,20 +66,20 @@ Semaphore::P()
 {
 	//printf("%s: P() value before inter is %d\n",name ,value);
 	//printf("currentThread is %s\n", currentThread->getName());
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-    while (value == 0) { 			// semaphore not available
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+	while (value == 0) { 			// semaphore not available
 
-	queue->Append((void *)currentThread);	// so go to sleep
-	currentThread->Sleep();
-    } 
-    //printf("%s value is %d\n", name, value);
+		queue->Append((void *)currentThread);	// so go to sleep
+		currentThread->Sleep();
+	}
+	//printf("%s value is %d\n", name, value);
 
-    //printf("value is %d\n", value);
+	//printf("value is %d\n", value);
 
-    value--; 					// semaphore available,
-						// consume its value
-//    printf("%s segmentation fault?\n",name);
-    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+	value--; 					// semaphore available,
+	// consume its value
+	//    printf("%s segmentation fault?\n",name);
+	(void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 
 }
 
@@ -94,16 +94,16 @@ Semaphore::P()
 void
 Semaphore::V()
 {
-//	printf("%s: V() value before inter is %d\n",name ,value);
-//	printf("currentThread is %s\n", currentThread->getName());
-    Thread *thread;
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+	//	printf("%s: V() value before inter is %d\n",name ,value);
+	//	printf("currentThread is %s\n", currentThread->getName());
+	Thread *thread;
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    thread = (Thread *)queue->Remove();
-    if (thread != NULL)	   // make thread ready, consuming the V immediately
-    	scheduler->ReadyToRun(thread);
-    value++;
-    (void) interrupt->SetLevel(oldLevel);
+	thread = (Thread *)queue->Remove();
+	if (thread != NULL)	   // make thread ready, consuming the V immediately
+		scheduler->ReadyToRun(thread);
+	value++;
+	(void) interrupt->SetLevel(oldLevel);
 }
 
 // Dummy functions -- so we can compile our later assignments 
@@ -121,14 +121,14 @@ Lock::~Lock() {
 }
 void Lock::Acquire() {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-//	printf("a.1\n");
+	//	printf("a.1\n");
 	while (locked) { 			// if it is locked, sleep.
-//		lockedThread = currentThread;
-//		printf("a.2\n");
+		//		lockedThread = currentThread;
+		//		printf("a.2\n");
 		queue->Append((void *)currentThread);
 		currentThread->Sleep();
 	}
-//	printf("a.3\n");
+	//	printf("a.3\n");
 	threadID = currentThread->getTid();
 	locked = true; // if it's not locked, acquire the lock.
 	(void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
@@ -153,7 +153,7 @@ bool Lock::isHeldByCurrentThread() {
 
 Condition::Condition(char* debugName) {
 	name = debugName;
-//	numSleepers = 0;
+	//	numSleepers = 0;
 	queue = new List();
 }
 Condition::~Condition() {
@@ -161,19 +161,19 @@ Condition::~Condition() {
 }
 void Condition::Wait(Lock* conditionLock) {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-//	numSleepers++;
-//	printf("cv wait 1\n");
+	//	numSleepers++;
+	//	printf("cv wait 1\n");
 	conditionLock->Release();
 	queue->Append((void *)currentThread);
-//	printf("cv wait 2\n");
+	//	printf("cv wait 2\n");
 	currentThread->Sleep();
 	(void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
-//	printf("cv wait 3\n");
+	//	printf("cv wait 3\n");
 	conditionLock->Acquire();
 }
 void Condition::Signal(Lock* conditionLock) {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-//	conditionLock->Release();
+	//	conditionLock->Release();
 	if(!queue->IsEmpty()) {
 
 		scheduler->ReadyToRun((Thread *)queue->Remove());
@@ -184,7 +184,7 @@ void Condition::Broadcast(Lock* conditionLock) {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 	//	conditionLock->Release();
 	while(!queue->IsEmpty()) {
-//		printf("Broad cast\n");
+		//		printf("Broad cast\n");
 		scheduler->ReadyToRun((Thread *)queue->Remove());
 	}
 	(void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
@@ -207,21 +207,18 @@ Barrier::~Barrier() {
 }
 
 void Barrier::Wait() {
-//	printf("a\n");
 	lock->Acquire();
-//	printf("b\n");
 	if(finished != barrierSize-1) {
-//		printf("c:finished is %d\n",finished);
 		finished++;
 		cv->Wait(lock);
 	} else {
-//		printf("d\n");
+		//		printf("d\n");
 		finished = 0;
 		cv->Broadcast(lock);
 	}
-//	printf("e\n");
+	//	printf("e\n");
 	lock->Release();
-//	printf("f\n");
+	//	printf("f\n");
 
 }
 

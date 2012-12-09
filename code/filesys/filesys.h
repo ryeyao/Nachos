@@ -38,6 +38,23 @@
 #include "copyright.h"
 #include "openfile.h"
 
+/*
+ * File types
+ *
+ * NOTE! These match bits 12..15 of stat.st_mode
+ * (ie "(i_mode >> 12) & 15").
+ */
+#define DT_NORMAL       0
+#define DT_FIFO         1
+#define DT_DISKBITMAP   2
+#define DT_DIR          3
+#define DT_INODE				4
+#define DT_BLK          6
+#define DT_REG          8
+#define DT_LNK          10
+#define DT_SOCK         12
+#define DT_WHT          14
+#define MaxFileNum 32*32
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
@@ -65,6 +82,8 @@ class FileSystem {
 };
 
 #else // FILESYS
+//#define FILESYS
+#include "bitmap.h"
 class FileSystem {
   public:
     FileSystem(bool format);		// Initialize the file system.
@@ -74,7 +93,7 @@ class FileSystem {
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
 
-    bool Create(char *name, int initialSize);  	
+    bool Create(char *name, int fileType);
 					// Create a file (UNIX creat)
 
     OpenFile* Open(char *name); 	// Open a file (UNIX open)
@@ -84,14 +103,23 @@ class FileSystem {
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
-
+    void AddToTable(int key, OpenFile* value) { fileTable[key] = value; }
+    OpenFile* GetFromTable(int key) { return fileTable[key]; }
+    void RemoveFromTable(int key) { fileTable[key] = NULL;}
   private:
+   int ParseDirectory(char *name);
+   bool RecurseRemove(char *name);
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
 					// represented as a file
-   OpenFile* directoryFile;		// "Root" directory -- list of 
-					// file names, represented as a file
+   OpenFile* directoryFile;
+   //OpenFile* rootDirectoryFile;
+   OpenFile* fileTable[128];
+   BitMap* fileTableMap;
 };
 
 #endif // FILESYS
-
+extern OpenFile* currentFreeMapFile;
+extern OpenFile* rootDirectoryFile;// "Root" directory -- list of
+// file names, represented as a file
+extern OpenFile* currentDirectoryFile;
 #endif // FS_H

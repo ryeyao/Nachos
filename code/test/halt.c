@@ -16,23 +16,24 @@ int
 main()
 {
 	//Test Create
-	char *fname = "TestSysCall";
-	int fd;
-	char *content = "Test my system call.";
-	char buffer[100];
-	int readSize;
-//	Create("TestUsrProg/TestSysCall");
-//	fd = Open("TestUsrProg/TestSysCall");
-	Create(fname);
-	fd = Open(fname);
-	Write(content,14,fd);
-//	Write("Test my system call.", 21, fd);
-//
-	readSize = Read(buffer, 14, fd);
-//	if(readSize == 21) {
-////		printf("halt.c:Read %d bytes successfully!\n");
-//	}
-	Close(fd);
-    Halt();
-    /* not reached */
+//	char *fname = "TestSysCall";
+//	int fdw,fdr;
+//	char *content = "Test my system call.";
+//	char buffer[100];
+//	int readSize;
+//	//	Create("TestUsrProg/TestSysCall");
+//	//	fd = Open("TestUsrProg/TestSysCall");
+//	Create(fname);
+//	fdw = Open(fname);
+//	Write(content,21,fdw);
+//	Close(fdw);
+
+//	fdr = Open(fname);
+//	//	Write("Test my system call.", 21, fd);
+//	//
+//	readSize = Read(buffer, 21, fd);
+//	Close(fd);
+//	Print("Bytes read is %d",readSize);
+	Halt();
+	/* not reached */
 }

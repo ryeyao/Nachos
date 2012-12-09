@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "openfile.h"
+#include "string.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -51,13 +53,186 @@
 void
 ExceptionHandler(ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
+	int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
-    }
+	if(which == SyscallException) {
+		if (type == SC_Halt) {
+			DEBUG('a', "Shutdown, initiated by user program.\n");
+			printf("Halt:Shutdown\n");
+			interrupt->Halt();
+
+		} else if (type == SC_Create) {
+			DEBUG('a', "Create a new file.\n");
+			int baseAddr = machine->ReadRegister(4);
+			int value = -1;
+			char *name;
+
+			int size = 0;
+			while(value != 0) {
+				machine->ReadMem(baseAddr + size, 1,&value);
+				size++;
+			}
+			name = new char[size];
+			name[--size] = '\0';
+			int counter = 0;
+			while(size--) {
+				machine->ReadMem(baseAddr++,1,&value);
+				name[counter++] = (char)value;
+			}
+			printf("Exception: First arg is %s. Arg's length is %d\n",name,counter + 1);
+			if(!fileSystem->Create(name, DT_NORMAL)) {
+				printf("Exception: Create file failed.\n");
+			}
+			delete name;
+
+		} else if (type == SC_Open) {
+			DEBUG('a', "Open a file. Return 0 if failed.\n");
+			int baseAddr = machine->ReadRegister(4);
+			int value = -1;
+			char *name;
+
+			int size = 0;
+			while(value != 0) {
+				machine->ReadMem(baseAddr + size, 1,&value);
+				size++;
+			}
+			name = new char[size];
+			name[--size] = '\0';
+			int counter = 0;
+			while(size--) {
+				machine->ReadMem(baseAddr++,1,&value);
+				name[counter++] = (char)value;
+			}
+			OpenFile* file = fileSystem->Open(name);
+			//			OpenFileId fd = (int)file;
+			OpenFileId fd = file->GetFileDescriptor();
+#ifdef FILESYS_STUB
+#else//FILESYS
+			fileSystem->AddToTable(fd,file);
+#endif
+			//			if(file) {
+			//				fd = (int)file;
+			//			} else {
+			//				fd = -1;
+			//			}
+			machine->WriteRegister(2,fd);
+			delete name;
+
+		} else if (type == SC_Close) {
+			DEBUG('a', "Close a file specified by id.\n");
+			int fd = machine->ReadRegister(4);
+
+#ifdef FILESYS_STUB
+			OpenFile* file = new OpenFile(fd);
+			//			OpenFile* file = fileSystem->GetFromTable(fd);
+			delete file;
+#else//FILESYS
+			OpenFile* file = fileSystem->GetFromTable(fd);
+			delete file;
+			fileSystem->RemoveFromTable(fd);
+#endif
+
+		} else if (type == SC_Write) {
+			DEBUG('a', "Write file.\n");
+			int fd = machine->ReadRegister(6);
+			int size = machine->ReadRegister(5);
+			int baseAddr = machine->ReadRegister(4);
+			char* buffer = new char[size];
+			//			int value = -1;
+			int i = 0;
+			while(i < size) {
+				machine->ReadMem(baseAddr + i, 1,(int *)&buffer[i]);
+				i++;
+			}
+#ifdef FILESYS_STUB
+			OpenFile* file = new OpenFile(fd);
+#else//FILESYS
+			OpenFile* file = fileSystem->GetFromTable(fd);
+#endif
+			int realSize = file->Write(buffer,size);
+			if(realSize != size) {
+				printf("Exception: Only wrote %d bytes of size.\n",realSize,size);
+			} else {
+				printf("Exception: Write %d bytes successfully\n",realSize);
+			}
+			delete buffer;
+
+		} else if (type == SC_Read) {
+			DEBUG('a', "Read a file.\n");
+			int fd = machine->ReadRegister(6);
+			int size = machine->ReadRegister(5);
+			int baseAddr = machine->ReadRegister(4);
+			char* buffer = new char[size];
+#ifdef FILESYS_STUB
+			OpenFile* file = new OpenFile(fd);
+#else//FILESYS
+			OpenFile* file = fileSystem->GetFromTable(fd);
+#endif
+			//			file->Seek(0);
+			int realSize = file->Read(buffer,size);
+			int i = 0;
+			while(i < size) {
+				machine->WriteMem(baseAddr + i, 1,(int)buffer);
+				i++;
+			}
+			if(realSize != size) {
+				printf("Exception: Only wrote %d bytes of size.\n",realSize,size);
+			} else {
+				machine->WriteRegister(2, realSize);
+				printf("Exception: Read %d bytes successfully\n",realSize);
+			}
+			delete buffer;
+		} else if (type == SC_Print) {//Print somethine...
+			DEBUG('a', "Print a string within a integer.\n");
+			int baseAddr = machine->ReadRegister(4);
+			int arg2 = machine->ReadRegister(5);
+			int value = -1;
+			char *content;
+			int size = 0;
+			while(value != 0) {
+				machine->ReadMem(baseAddr + size, 1,&value);
+				size++;
+			}
+			content = new char[size];
+			content[--size] = '\0';
+			int counter = 0;
+			while(size--) {
+				machine->ReadMem(baseAddr++,1,&value);
+				content[counter++] = (char)value;
+			}
+			printf(content,arg2);
+			delete content;
+		} else if (type == SC_Mkdir) {
+			DEBUG('a', "Make a directory specified by path.\n");
+			int baseAddr = machine->ReadRegister(4);
+			int value = -1;
+			char *name;
+
+			int size = 0;
+			while(value != 0) {
+				machine->ReadMem(baseAddr + size, 1,&value);
+				size++;
+			}
+			name = new char[size];
+			name[--size] = '\0';
+			int counter = 0;
+			while(size--) {
+				machine->ReadMem(baseAddr++,1,&value);
+				name[counter++] = (char)value;
+			}
+			if(!fileSystem->Create(name,DT_DIR)) {
+				printf("Exception: Create directory %s failed.\n",name);
+			} else {
+				printf("Exception: Directory %s created successfully.\n",name);
+			}
+			delete name;
+		}else {
+			printf("Exception: Unexpected exception type %d\n", type);
+			ASSERT(FALSE);
+		}
+
+	} else {
+		printf("Exception: Unexpected mode %d\n", which);
+		ASSERT(FALSE);
+	}
 }

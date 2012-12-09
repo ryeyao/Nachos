@@ -10,7 +10,8 @@
 
 #include "copyright.h"
 #include "system.h"
-#include "console.h"
+//#include "console.h"
+#include "synchconsole.h"
 #include "addrspace.h"
 #include "synch.h"
 
@@ -23,39 +24,42 @@
 void
 StartProcess(char *filename)
 {
-    OpenFile *executable = fileSystem->Open(filename);
-    AddrSpace *space;
+	OpenFile *executable = fileSystem->Open(filename);
+	AddrSpace *space;
 
-    if (executable == NULL) {
-	printf("Unable to open file %s\n", filename);
-	return;
-    }
-    space = new AddrSpace(executable);    
-    currentThread->space = space;
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return;
+	}
+	space = new AddrSpace(executable);
+	currentThread->space = space;
 
-    delete executable;			// close file
+	delete executable;			// close file
 
-    space->InitRegisters();		// set the initial register values
-    space->RestoreState();		// load page table register
+	space->InitRegisters();		// set the initial register values
+	space->RestoreState();		// load page table register
 
-    machine->Run();			// jump to the user progam
-    ASSERT(FALSE);			// machine->Run never returns;
-					// the address space exits
-					// by doing the syscall "exit"
+	machine->Run();			// jump to the user progam
+	ASSERT(FALSE);			// machine->Run never returns;
+	// the address space exits
+	// by doing the syscall "exit"
 }
 
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.
 
 static Console *console;
+static SynchConsole *synchConsole;
 static Semaphore *readAvail;
 static Semaphore *writeDone;
+static Lock *getLock;
+static Lock *putLock;
 
 //----------------------------------------------------------------------
 // ConsoleInterruptHandlers
 // 	Wake up the thread that requested the I/O.
 //----------------------------------------------------------------------
-
+// Dummy functions because C++ is weird about pointers to member functions
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
@@ -68,17 +72,34 @@ static void WriteDone(int arg) { writeDone->V(); }
 void 
 ConsoleTest (char *in, char *out)
 {
-    char ch;
+	char ch;
 
-    console = new Console(in, out, ReadAvail, WriteDone, 0);
-    readAvail = new Semaphore("read avail", 0);
-    writeDone = new Semaphore("write done", 0);
-    
-    for (;;) {
-	readAvail->P();		// wait for character to arrive
-	ch = console->GetChar();
-	console->PutChar(ch);	// echo it!
-	writeDone->P() ;        // wait for write to finish
-	if (ch == 'q') return;  // if q, quit
-    }
+	console = new Console(in, out, ReadAvail, WriteDone, 0);
+	readAvail = new Semaphore("read avail", 0);
+	writeDone = new Semaphore("write done", 0);
+	getLock = new Lock("get lock");
+	putLock = new Lock("put lock");
+	for (;;) {
+		readAvail->P();		// wait for character to arrive
+		getLock->Acquire();
+		ch = console->GetChar();
+		getLock->Release();
+
+		putLock->Acquire();
+		console->PutChar(ch);	// echo it!
+		putLock->Release();
+		writeDone->P() ;        // wait for write to finish
+		if (ch == 'q') return;  // if q, quit
+	}
+}
+
+void SynchConsoleTest (char *in, char* out) {
+	char ch;
+	synchConsole = new SynchConsole(in, out);
+
+	for (;;) {
+		ch = synchConsole->GetChar();
+		synchConsole->PutChar(ch);
+		if (ch == 'q') return;  // if q, quit
+	}
 }

@@ -363,6 +363,26 @@ bitmap.o: ../userprog/bitmap.cc ../threads/copyright.h \
  ../threads/stdarg.h /usr/include/bits/stdio_lim.h \
  /usr/include/bits/sys_errlist.h /usr/include/string.h \
  /usr/include/xlocale.h ../filesys/openfile.h
+synchconsole.o: ../userprog/synchconsole.cc ../threads/copyright.h \
+ ../userprog/synchconsole.h ../threads/utility.h ../threads/copyright.h \
+ ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
+ /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-32.h \
+ /usr/lib/gcc/i686-redhat-linux/4.7.0/include/stddef.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ ../threads/stdarg.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/sys_errlist.h /usr/include/string.h \
+ /usr/include/xlocale.h ../machine/console.h ../threads/synch.h \
+ ../threads/thread.h ../threads/utility.h ../machine/machine.h \
+ ../machine/translate.h ../machine/disk.h ../userprog/addrspace.h \
+ ../filesys/filesys.h ../filesys/openfile.h ../userprog/bitmap.h \
+ ../filesys/openfile.h ../threads/list.h ../threads/system.h \
+ ../threads/scheduler.h ../machine/timer.h \
+ ../threads/scheduleralogrithms.h ../machine/interrupt.h \
+ ../threads/list.h ../machine/stats.h ../filesys/synchdisk.h \
+ ../machine/disk.h
 exception.o: ../userprog/exception.cc ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -400,7 +420,7 @@ progtest.o: ../userprog/progtest.cc ../threads/copyright.h \
  ../threads/list.h ../machine/timer.h ../threads/scheduleralogrithms.h \
  ../machine/interrupt.h ../threads/list.h ../machine/stats.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
- ../machine/console.h ../userprog/addrspace.h
+ ../userprog/synchconsole.h ../machine/console.h ../userprog/addrspace.h
 console.o: ../machine/console.cc ../threads/copyright.h \
  ../machine/console.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \

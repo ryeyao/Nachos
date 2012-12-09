@@ -12,15 +12,15 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
+
 
 #ifndef DIRECTORY_H
 #define DIRECTORY_H
-
+#include "copyright.h"
 #include "openfile.h"
 
-#define FileNameMaxLen 		9	// for simplicity, we assume 
-					// file names are <= 9 characters long
+#define FileNameMaxLen 		127	// for simplicity, we assume
+// file names are <= 9 characters long
 
 // The following class defines a "directory entry", representing a file
 // in the directory.  Each entry gives the name of the file, and where
@@ -30,12 +30,34 @@
 // access them directly.
 
 class DirectoryEntry {
-  public:
-    bool inUse;				// Is this directory entry in use?
-    int sector;				// Location on disk to find the 
-					//   FileHeader for this file 
-    char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
-					// the trailing '\0'
+public:
+	bool inUse;				// Is this directory entry in use?
+	int sector;				// Location on disk to find the
+	//   FileHeader for this file
+	//char name[FileNameMaxLen + 1];	// Text name for file, with +1 for
+	// the trailing '\0'
+	char name[FileNameMaxLen + 1];
+//	int type;
+	/**
+	 * Added by Rye
+	 */
+	int fileType;
+	char createTime[25];//Time that this file is created.
+	char lastAccessTime[25];//Time that this file is last visited.
+	char lastModifyTime[25];//Time that this file is last modified.
+
+	//	int getFileType() { return fileType; }
+	//	void setFileType(int ftype) { fileType = ftype;}
+	//
+	//	char* getAbsPath() { return absPath; }
+	//	/**
+	//	 * Return the `struct tm' representation of *TIMER in local time, using *TP to store the result.
+	//	 * CreateTime is initialized when FileHeader::Allocate is called.
+	//	 */
+	//	char* getCreateTime() { return createTime; }
+	//	char* getLastAccessTime() { return lastAccessTime; }
+	//	char* getLastModifyTime() { return lastModifyTime;}
+
 };
 
 // The following class defines a UNIX-like "directory".  Each entry in
@@ -49,35 +71,38 @@ class DirectoryEntry {
 // from/to disk. 
 
 class Directory {
-  public:
-    Directory(int size); 		// Initialize an empty directory
-					// with space for "size" files
-    ~Directory();			// De-allocate the directory
+public:
+	Directory(int selfSector); 		// Initialize an empty directory
+	// with space for "size" files
+	~Directory();			// De-allocate the directory
 
-    void FetchFrom(OpenFile *file);  	// Init directory contents from disk
-    void WriteBack(OpenFile *file);	// Write modifications to 
-					// directory contents back to disk
+	void FetchFrom(OpenFile *file);  	// Init directory contents from disk
+	void WriteBack(OpenFile *file);	// Write modifications to
+	// directory contents back to disk
 
-    int Find(char *name);		// Find the sector number of the 
-					// FileHeader for file: "name"
+	int Find(char *name);		// Find the sector number of the
+	// FileHeader for file: "name"
+	char* Find(int sector);
 
-    bool Add(char *name, int newSector);  // Add a file name into the directory
+	bool Add(char *name, int newSector, int fileType);  // Add a file name into the directory
 
-    bool Remove(char *name);		// Remove a file from the directory
+	bool Remove(char *name);		// Remove a file from the directory
 
-    void List();			// Print the names of all the files
-					//  in the directory
-    void Print();			// Verbose print of the contents
-					//  of the directory -- all the file
-					//  names and their contents.
+	void List();			// Print the names of all the files
+	//  in the directory
+	void Print();			// Verbose print of the contents
+	//  of the directory -- all the file
+	//  names and their contents.
+	char* GetPath();
+	bool IsDirectory(char *name);
 
-  private:
-    int tableSize;			// Number of directory entries
-    DirectoryEntry *table;		// Table of pairs: 
-					// <file name, file header location> 
-
-    int FindIndex(char *name);		// Find the index into the directory 
-					//  table corresponding to "name"
+private:
+	DirectoryEntry *table;		// Table of pairs:
+		// <file name, file header location>
+	int tableSize;			// Number of directory entries, won't be written back to disk
+	int selfSector;
+	int FindIndex(char *name);		// Find the index into the directory
+	//  table corresponding to "name"
 };
 
 #endif // DIRECTORY_H

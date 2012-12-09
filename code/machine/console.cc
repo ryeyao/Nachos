@@ -17,8 +17,8 @@
 #include "console.h"
 #include "system.h"
 
-// Dummy functions because C++ is weird about pointers to member functions
-static void ConsoleReadPoll(int c) 
+//// Dummy functions because C++ is weird about pointers to member functions
+static void ConsoleReadPoll(int c)
 { Console *console = (Console *)c; console->CheckCharAvail(); }
 static void ConsoleWriteDone(int c)
 { Console *console = (Console *)c; console->WriteDone(); }

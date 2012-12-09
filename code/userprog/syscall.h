@@ -29,6 +29,8 @@
 #define SC_Close	8
 #define SC_Fork		9
 #define SC_Yield	10
+#define SC_Print  11
+#define SC_Mkdir  12
 
 #ifndef IN_ASM
 
@@ -124,6 +126,8 @@ void Fork(void (*func)());
  */
 void Yield();		
 
+void Print(char* content, int numBytes);
+void Mkdir(char* path);
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

@@ -22,8 +22,10 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "filesys.h"
 #include "filehdr.h"
 #include "directory.h"
+#include "string.h"
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -35,12 +37,15 @@
 //	"size" is the number of entries in the directory
 //----------------------------------------------------------------------
 
-Directory::Directory(int size)
+Directory::Directory(int selfSector)
 {
-    table = new DirectoryEntry[size];
-    tableSize = size;
-    for (int i = 0; i < tableSize; i++)
-	table[i].inUse = FALSE;
+	//	table = new DirectoryEntry[parent];
+	//	tableSize = parent;
+	table = NULL;
+	tableSize = 0;
+	this->selfSector = selfSector;
+	//	for (int i = 0; i < tableSize; i++)
+	//		table[i].inUse = FALSE;
 }
 
 //----------------------------------------------------------------------
@@ -50,7 +55,9 @@ Directory::Directory(int size)
 
 Directory::~Directory()
 { 
-    delete [] table;
+	if(tableSize > 0) {
+		delete [] table;
+	}
 } 
 
 //----------------------------------------------------------------------
@@ -63,7 +70,21 @@ Directory::~Directory()
 void
 Directory::FetchFrom(OpenFile *file)
 {
-    (void) file->ReadAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+	selfSector = file->GetFileDescriptor();
+	if(tableSize != 0) {//current directory is not empty
+		delete[] table;
+		tableSize = 0;
+	} else {
+		table = NULL;
+	}
+	tableSize = file->Length()/sizeof(DirectoryEntry);//new directory file size
+
+	if(tableSize > 0) {//the directory file to be fetched is not empty
+		table = new DirectoryEntry[tableSize];
+		(void) file->ReadAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+	} else {
+		printf("FetchFrom empty directory(file length is %d), do nothing\n",file->Length());
+	}
 }
 
 //----------------------------------------------------------------------
@@ -76,7 +97,12 @@ Directory::FetchFrom(OpenFile *file)
 void
 Directory::WriteBack(OpenFile *file)
 {
-    (void) file->WriteAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+	int num = 0;
+	if(tableSize != 0) {
+		num = file->WriteAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+		printf("Directory file(%d bytes) is written back to disk\n",num);
+	}
+	printf("Directory file(%d bytes) is written back to disk\n",num);
 }
 
 //----------------------------------------------------------------------
@@ -90,10 +116,15 @@ Directory::WriteBack(OpenFile *file)
 int
 Directory::FindIndex(char *name)
 {
-    for (int i = 0; i < tableSize; i++)
-        if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
-	    return i;
-    return -1;		// name not in directory
+	if(tableSize == 0) {
+		return -1;//new directory
+	}
+	for (int i = 0; i < tableSize; i++) {
+		//if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
+		if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
+			return i;
+	}
+	return -1;		// name not in directory
 }
 
 //----------------------------------------------------------------------
@@ -108,13 +139,33 @@ Directory::FindIndex(char *name)
 int
 Directory::Find(char *name)
 {
-    int i = FindIndex(name);
+	int i = FindIndex(name);
 
-    if (i != -1)
-	return table[i].sector;
-    return -1;
+	if (i != -1) {
+		//Assume that when Find is called, the file (if exist) would be modified/accessed.
+		time_t lt;
+		lt = time(NULL);
+		char *ts = ctime(&lt);
+		int ts_len = strlen(ts) + 1;
+		strncpy(table[i].lastAccessTime, ts, ts_len);
+		strncpy(table[i].lastModifyTime, ts, ts_len);
+		return table[i].sector;
+	}
+	return -1;
 }
 
+bool Directory::IsDirectory(char *name) {
+
+	int i = FindIndex(name);
+
+	if(i != -1) {
+		if(table[i].fileType == DT_DIR) {
+			return true;
+		}
+	}
+	return false;
+
+}
 //----------------------------------------------------------------------
 // Directory::Add
 // 	Add a file into the directory.  Return TRUE if successful;
@@ -127,19 +178,37 @@ Directory::Find(char *name)
 //----------------------------------------------------------------------
 
 bool
-Directory::Add(char *name, int newSector)
-{ 
-    if (FindIndex(name) != -1)
-	return FALSE;
-
-    for (int i = 0; i < tableSize; i++)
-        if (!table[i].inUse) {
-            table[i].inUse = TRUE;
-            strncpy(table[i].name, name, FileNameMaxLen); 
-            table[i].sector = newSector;
-        return TRUE;
+Directory::Add(char *name, int newSector, int fileType)
+{	DirectoryEntry *de = NULL;
+	if (FindIndex(name) != -1) {//file exists or new directory
+		if(tableSize != 0) {//file exists
+			return FALSE;
+		}
 	}
-    return FALSE;	// no space.  Fix when we have extensible files.
+	if(tableSize + 1 > MaxDirectorySize) {
+		printf("No more spaces in this directory.\n");
+		return FALSE;
+	}
+	de = new DirectoryEntry[tableSize + 1];
+	memcpy(de, table, sizeof(DirectoryEntry) * tableSize);
+	delete[] table;//delete old table
+	table = de;
+	table[tableSize].inUse = TRUE;
+	strncpy(table[tableSize].name, name, FileNameMaxLen);
+	table[tableSize].sector = newSector;
+
+	//initialize some of the file's attributes
+	table[tableSize].fileType = fileType;
+	//			printf("filehdr.cc:Allocate\n");
+	time_t lt;
+	lt = time(NULL);
+	char *ts = ctime(&lt);
+	int ts_len = strlen(ts)+1;
+	strncpy(table[tableSize].createTime, ts, ts_len);
+	strncpy(table[tableSize].lastAccessTime, ts, ts_len);
+	strncpy(table[tableSize].lastModifyTime, ts, ts_len);
+	tableSize++;
+	return TRUE;	// no space.  Fix when we have extensible files.
 }
 
 //----------------------------------------------------------------------
@@ -152,13 +221,39 @@ Directory::Add(char *name, int newSector)
 
 bool
 Directory::Remove(char *name)
-{ 
-    int i = FindIndex(name);
+{	int i = FindIndex(name);
+	if (tableSize <= 0 || i == -1) {
+		return FALSE; 		// name not in directory
+	}
+	FileHeader *selfHdr = new FileHeader;
+	BitMap *currentFreeMap = new BitMap(NumSectors);
+	currentFreeMap->FetchFrom(currentFreeMapFile);
+	selfHdr->FetchFrom(selfSector);
+	if (tableSize == 1) {// only one file int it.
+		tableSize = 0;
+		selfHdr->Deallocate(currentFreeMap);//old directory file on disk is abandoned
+		ASSERT(selfHdr->FileLength() == 0);
+		delete[] table;
+		delete currentFreeMap;
+		delete selfHdr;
+		return TRUE;
+	}
+	DirectoryEntry *de = new DirectoryEntry[tableSize - 1];
+	memcpy(de, table, i*sizeof(DirectoryEntry));
+	memcpy(de + i, table + i + 1, (tableSize - i - 1));
+	tableSize--;
+	delete[] table;
+	table = de;
+	int lastSector = divRoundDown(selfHdr->FileLength(), SectorSize);
+	if (divRoundDown(selfHdr->FileLength() - sizeof(DirectoryEntry), SectorSize) < lastSector) {
+		ASSERT(currentFreeMap->Test(lastSector));  // ought to be marked!
+		currentFreeMap->Clear(lastSector);
 
-    if (i == -1)
-	return FALSE; 		// name not in directory
-    table[i].inUse = FALSE;
-    return TRUE;	
+		printf("Clear the last sector of directory file\n");
+	}
+	delete currentFreeMap;
+	delete selfHdr;
+	return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -169,9 +264,9 @@ Directory::Remove(char *name)
 void
 Directory::List()
 {
-   for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
+	for (int i = 0; i < tableSize; i++)
+		if (table[i].inUse)
+			printf("%s\n", table[i].name);
 }
 
 //----------------------------------------------------------------------
@@ -183,15 +278,15 @@ Directory::List()
 void
 Directory::Print()
 { 
-    FileHeader *hdr = new FileHeader;
+	FileHeader *hdr = new FileHeader;
 
-    printf("Directory contents:\n");
-    for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse) {
-	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
-	    hdr->FetchFrom(table[i].sector);
-	    hdr->Print();
-	}
-    printf("\n");
-    delete hdr;
+	printf("Directory contents:\n");
+	for (int i = 0; i < tableSize; i++)
+		if (table[i].inUse) {
+			printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
+			hdr->FetchFrom(table[i].sector);
+			hdr->Print();
+		}
+	printf("\n");
+	delete hdr;
 }
