@@ -65,7 +65,7 @@ class Semaphore {
 
 class Lock {
   public:
-    Lock(char* debugName);  		// initialize lock to be FREE
+    Lock(char *lockname);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
     char* getName() { return name; }	// debugging assist
 
@@ -80,6 +80,9 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+    bool locked;
+    int threadID;
+    List* queue;
 };
 
 // The following class defines a "condition variable".  A condition
@@ -116,7 +119,7 @@ class Lock {
 
 class Condition {
   public:
-    Condition(char* debugName);		// initialize condition to 
+    Condition(char* conditionName);		// initialize condition to
 					// "no one waiting"
     ~Condition();			// deallocate the condition
     char* getName() { return (name); }
@@ -128,9 +131,32 @@ class Condition {
     void Signal(Lock *conditionLock);   // conditionLock must be held by
     void Broadcast(Lock *conditionLock);// the currentThread for all of 
 					// these operations
+    void QueuePrint();
 
   private:
     char* name;
+    int numSleepers;
+    List* queue;
     // plus some other stuff you'll need to define
+};
+
+/**
+ * Barrier
+ */
+class Barrier {
+public:
+	Barrier(char* debugName, int size);
+	~Barrier();
+	char* getName() { return name;}
+	void Wait();
+	void Print();
+
+private:
+	char *name;
+	int barrierSize;
+	int finished;
+	Condition *cv;
+	Lock *lock;
+
 };
 #endif // SYNCH_H

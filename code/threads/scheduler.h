@@ -12,6 +12,11 @@
 #include "copyright.h"
 #include "list.h"
 #include "thread.h"
+#include "timer.h"
+#include "scheduleralogrithms.h"
+#define TIME_DELAY 0
+#define SCHED_PRIORITY
+//#define SCHED_FIFO
 
 // The following class defines the scheduler/dispatcher abstraction -- 
 // the data structures and operations needed to keep track of which 
@@ -27,10 +32,18 @@ class Scheduler {
 					// list, if any, and return thread.
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
+
+    List *GetAllThreadList() {	return allThreadList; }
+    List *GetReadyList() { return readyList; }
+    void AddToAllThreadList(Thread* thread); //add thread to all thread list
+    bool RemoveFromThreadList(Thread* threadToBeRemoved);//Remove specified item from list, if no item matched, return false.
+    void AdjustAllPriority();
     
   private:
     List *readyList;  		// queue of threads that are ready to run,
 				// but not running
+    List *allThreadList;
+    Timer *timerInter;
 };
 
 #endif // SCHEDULER_H

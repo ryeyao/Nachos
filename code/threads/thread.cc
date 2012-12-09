@@ -19,6 +19,9 @@
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
+//Added by Rye
+//#include "tid.h"
+#include "tid.h"
 
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
@@ -38,9 +41,19 @@ Thread::Thread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    tid = alloc_tidmap();
+    scheduler->AddToAllThreadList(this);
+    timeSlices = TIMESLICE_DEFAULT;
+
 #ifdef USER_PROGRAM
+    uid = 0;//set to user id
     space = NULL;
+    priority = LOWEST_PRIORITY;//a user thread is set to lowest priority by default
+#else
+    uid = 0;
+    priority = LOWEST_PRIORITY;//by default
 #endif
+
 }
 
 //----------------------------------------------------------------------
@@ -60,8 +73,11 @@ Thread::~Thread()
     DEBUG('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT(this != currentThread);
-    if (stack != NULL)
-	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+    if (stack != NULL) {
+
+    	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+
+    	}
 }
 
 //----------------------------------------------------------------------
@@ -89,13 +105,22 @@ Thread::Fork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
-    
-    StackAllocate(func, arg);
+    if(tid >= 0) {
+	
+        printf("Fork:Tid is %d\n",tid);   
+    	//Added by Rye
+    	//Origin: StackAllocate(func, arg);
+    	StackAllocate(func, arg);
 
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    	scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
-    (void) interrupt->SetLevel(oldLevel);
+    	(void) interrupt->SetLevel(oldLevel);
+    } else {
+			//free_tidmap();
+			int tid_max = TID_MAX_DEFAULT;
+			printf("Only allow %d threads exist.\n",tid_max);
+		}
 }    
 
 //----------------------------------------------------------------------
@@ -147,8 +172,11 @@ Thread::Finish ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
-    
+//    printf("See when does it finish..\n");
+    clear_bit(tid);
+
     threadToBeDestroyed = currentThread;
+
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -180,10 +208,12 @@ Thread::Yield ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
-    
-    nextThread = scheduler->FindNextToRun();
+#ifdef SCHED_PRIORITY
+    currentThread->setPriority(currentThread->getPriority() - 1);
+#endif
+    nextThread = scheduler->FindNextToRun();//get a thread from the front of readList
     if (nextThread != NULL) {
-	scheduler->ReadyToRun(this);
+	scheduler->ReadyToRun(this);//add current thread to the end of readyList
 	scheduler->Run(nextThread);
     }
     (void) interrupt->SetLevel(oldLevel);
@@ -235,7 +265,14 @@ Thread::Sleep ()
 
 static void ThreadFinish()    { currentThread->Finish(); }
 static void InterruptEnable() { interrupt->Enable(); }
-void ThreadPrint(int arg){ Thread *t = (Thread *)arg; t->Print(); }
+void ThreadPrint(int arg){
+	Thread *t = (Thread *)arg;
+	t->Print();
+}
+void DecreasePriority(int arg) {
+	Thread *t = (Thread *)arg;
+	t->DecreasePriority();
+}
 
 //----------------------------------------------------------------------
 // Thread::StackAllocate

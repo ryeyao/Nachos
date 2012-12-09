@@ -141,8 +141,11 @@ Initialize(int argc, char **argv)
     // We didn't explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a Thread
     // object to save its state. 
-    currentThread = new Thread("main");		
+    currentThread = new Thread("main");
     currentThread->setStatus(RUNNING);
+//    currentThread->setTimeSlice(1);
+    currentThread->setPriority(0);
+    //scheduler->AddToAllThreadList(currentThread);
 
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C

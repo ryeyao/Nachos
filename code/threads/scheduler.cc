@@ -21,6 +21,7 @@
 #include "copyright.h"
 #include "scheduler.h"
 #include "system.h"
+#include "timer.h"
 
 //----------------------------------------------------------------------
 // Scheduler::Scheduler
@@ -30,6 +31,10 @@
 Scheduler::Scheduler()
 { 
     readyList = new List; 
+    allThreadList = new List;
+#ifdef SCHED_PRIORITY
+    timerInter = new Timer(Scheduler_RR, TIME_DELAY, false);
+#endif
 } 
 
 //----------------------------------------------------------------------
@@ -40,6 +45,7 @@ Scheduler::Scheduler()
 Scheduler::~Scheduler()
 { 
     delete readyList; 
+    delete allThreadList;
 } 
 
 //----------------------------------------------------------------------
@@ -56,7 +62,18 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
+#ifdef SCHED_PRIORITY//using priority-based interruptible scheduler
+    readyList->SortedInsert(thread, thread->getPriority());
+    if(currentThread->getPriority() > thread->getPriority()) {
+    	currentThread->Yield();
+    	}
+#elif SCHED_FIFO//FCFS
     readyList->Append((void *)thread);
+#else //no scheduler defined
+    readyList->Append((void *)thread);
+#endif
+
+
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +87,16 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
+#ifdef SCHED_PRIORITY//using priority-based interruptible scheduler
+		int priorityOfJustRun = 255;//it is of no use...
+		return (Thread *)readyList->SortedRemove(&priorityOfJustRun);
+#elif SCHED_FIFO//FCFS
+		return (Thread *)readyList->Remove();
+#else //no scheduler defined
+		return (Thread *)readyList->Remove();
+#endif
     return (Thread *)readyList->Remove();
+
 }
 
 //----------------------------------------------------------------------
@@ -104,7 +130,7 @@ Scheduler::Run (Thread *nextThread)
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running
-    
+    //currentThread->setTimeSlice(1);//every thread has one slice to be used
     DEBUG('t', "Switching from thread \"%s\" to thread \"%s\"\n",
 	  oldThread->getName(), nextThread->getName());
     
@@ -122,9 +148,14 @@ Scheduler::Run (Thread *nextThread)
     // before now (for example, in Thread::Finish()), because up to this
     // point, we were still running on the old thread's stack!
     if (threadToBeDestroyed != NULL) {
+    		if(scheduler->RemoveFromThreadList(threadToBeDestroyed)) {
+//    			printf("Removed successfully!\n");
+    		} else {
+//    			printf("Nothing to remove!\n");
+    			}
         delete threadToBeDestroyed;
-	threadToBeDestroyed = NULL;
-    }
+        threadToBeDestroyed = NULL;
+    	}
     
 #ifdef USER_PROGRAM
     if (currentThread->space != NULL) {		// if there is an address space
@@ -142,6 +173,26 @@ Scheduler::Run (Thread *nextThread)
 void
 Scheduler::Print()
 {
-    printf("Ready list contents:\n");
-    readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
+    //printf("Ready list contents:\n");
+    //readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
+	allThreadList->Mapcar((VoidFunctionPtr) ThreadPrint);
+}
+
+/**
+ * Add thread to allThreadList
+ */
+void Scheduler::AddToAllThreadList(Thread* thread) {
+	allThreadList->Append((void *)thread);
+}
+/**
+ * Remove current thread from AllThreadList
+ */
+bool Scheduler::RemoveFromThreadList(Thread *threadToBeRemoved) {
+	return allThreadList->RemoveItem(threadToBeRemoved);
+}
+/**
+ * Multiply all thread priority by percent.
+ */
+void Scheduler::AdjustAllPriority() {
+	allThreadList->Mapcar((VoidFunctionPtr)DecreasePriority);
 }

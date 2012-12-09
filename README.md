@@ -1,4 +1,0 @@
-Nachos
-======
-
-PKUSS OS-LAB ASSIGNMENTS

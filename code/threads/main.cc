@@ -56,7 +56,7 @@
 #ifdef THREADS
 extern int testnum;
 #endif
-//#include "synctest.h"
+#include "synctest.h"
 // External functions used by this file
 
 extern void ThreadTest(int), Copy(char *unixFile, char *nachosFile);

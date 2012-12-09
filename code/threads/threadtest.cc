@@ -11,10 +11,10 @@
 
 #include "copyright.h"
 #include "system.h"
-
+#include "ts.h"
 // testnum is set in main.cc
 int testnum = 1;
-
+Ts *ts = new Ts();
 //----------------------------------------------------------------------
 // SimpleThread
 // 	Loop 5 times, yielding the CPU to another ready thread 
@@ -29,27 +29,33 @@ SimpleThread(int which)
 {
     int num;
     
-    for (num = 0; num < 5; num++) {
-	printf("*** thread %d looped %d times\n", which, num);
-        currentThread->Yield();
+    for (num = 0;num<100; num++) {
+//	currentThread->Yield();
+
+//        currentThread->Sleep();
     }
+    ts->PrintThreadInfo();
+    printf("*** thread %d looped %d times\n", which, num);
+//    currentThread->Sleep();
+//    currentThread->Yield();
 }
 
 //----------------------------------------------------------------------
 // ThreadTest1
 // 	Set up a ping-pong between two threads, by forking a thread 
 //	to call SimpleThread, and then calling SimpleThread ourselves.
-//----------------------------------------------------------------------
-
-void
-ThreadTest1()
+//---------------------------------------------------------------------- 
+void ThreadTest1()
 {
     DEBUG('t', "Entering ThreadTest1");
+    for(int i = 0;i < 10;++ i) {
 
-    Thread *t = new Thread("forked thread");
-
-    t->Fork(SimpleThread, 1);
-    SimpleThread(0);
+        Thread *t = new Thread("forked_t");
+	
+        t->Fork(SimpleThread,t->getTid());
+	//SimpleThread(currentThread->getTid());
+    }
+    //SimpleThread(currentThread->getTid());
 }
 
 //----------------------------------------------------------------------
@@ -58,9 +64,17 @@ ThreadTest1()
 //----------------------------------------------------------------------
 
 void
-ThreadTest()
+ThreadTest(int num)
 {
-    switch (testnum) {
+    testnum = num;
+    if(num) {
+//	printf("testnum = %d\n",num);
+	ThreadTest1();
+    } else {
+	printf("No test specified.\n");
+    }
+    //printf("Just for debugging.\n");
+   /* switch (testnum) {
     case 1:
 	ThreadTest1();
 	break;
@@ -68,5 +82,6 @@ ThreadTest()
 	printf("No test specified.\n");
 	break;
     }
+   */	
 }
 

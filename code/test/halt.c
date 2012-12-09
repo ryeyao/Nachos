@@ -15,6 +15,24 @@
 int
 main()
 {
+	//Test Create
+	char *fname = "TestSysCall";
+	int fd;
+	char *content = "Test my system call.";
+	char buffer[100];
+	int readSize;
+//	Create("TestUsrProg/TestSysCall");
+//	fd = Open("TestUsrProg/TestSysCall");
+	Create(fname);
+	fd = Open(fname);
+	Write(content,14,fd);
+//	Write("Test my system call.", 21, fd);
+//
+	readSize = Read(buffer, 14, fd);
+//	if(readSize == 21) {
+////		printf("halt.c:Read %d bytes successfully!\n");
+//	}
+	Close(fd);
     Halt();
     /* not reached */
 }

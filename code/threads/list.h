@@ -48,6 +48,7 @@ class List {
     void Prepend(void *item); 	// Put item at the beginning of the list
     void Append(void *item); 	// Put item at the end of the list
     void *Remove(); 	 	// Take item off the front of the list
+    bool RemoveItem(void* itemToBeRemoved);//Remove specified item from list, if no item matched, return false.
 
     void Mapcar(VoidFunctionPtr func);	// Apply "func" to every element 
 					// on the list
@@ -57,7 +58,8 @@ class List {
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int sortKey);	// Put item into list
     void *SortedRemove(int *keyPtr); 	  	// Remove first item from list
-
+    ListElement *Front() { return first; }
+    ListElement *Rear() { return last; }
   private:
     ListElement *first;  	// Head of the list, NULL if list is empty
     ListElement *last;		// Last element of list

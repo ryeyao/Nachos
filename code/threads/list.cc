@@ -17,6 +17,7 @@
 
 #include "copyright.h"
 #include "list.h"
+#include "thread.h"
 
 //----------------------------------------------------------------------
 // ListElement::ListElement
@@ -125,6 +126,63 @@ void *
 List::Remove()
 {
     return SortedRemove(NULL);  // Same as SortedRemove, but ignore the key
+}
+/**
+ * remove specified item from list, if no item matched, return false.
+ */
+bool List::RemoveItem(void* item) {
+	ListElement *element = first;
+	    void *thing;
+
+	    if (IsEmpty()) {
+//	    	printf("allThreadList is empty!\n");
+	    	return false;
+	    	}
+
+	    thing = first->item;
+	    if (first == last) {	// list had one item, now has none
+	    	if(first->item == item) {
+	    			first = NULL;
+	    			last = NULL;
+//	    			printf("One item only\n");
+	    			delete element;
+	    			return true;
+	    	} else {//nothing removed
+//	    		printf("One item only and it isn't to be removed\n");
+	    			return false;
+	    		}
+	    } else if (first->item == item) {//the first item is to be delete
+	    	first = element->next;
+//	    	printf("More than 1 item, the first is to be removed \n");
+	    	delete element;
+	    	return true;
+	    } else {
+	    	ListElement *p = first;
+	    	while(p->next) {//has a next element
+	    		if(p->next->item == item) {//next is to be removed
+//	    			printf("Item is %d",((Thread *)item)->getTid());
+	    			if(p->next == last) {//next is the last
+	    				last = p;
+
+	    				element = p->next;//element is the old last
+	    				last->next = NULL;
+//	    				printf("next is the last \n");
+	    				delete element;
+	    				return true;
+	    				}
+	    			element = p->next;
+	    			p->next = element->next;
+//	    			printf("Next is not the last, remove it \n");
+	    			element->next = NULL;
+	    			delete element;
+//	    			Mapcar((VoidFunctionPtr)ThreadPrint);
+	    			return true;
+	    			}
+	    		p = p->next;
+	    		}
+	    	}
+//	    printf("More than 1 item, but no item to remove\n");
+	    return false;
 }
 
 //----------------------------------------------------------------------

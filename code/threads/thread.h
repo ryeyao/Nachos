@@ -49,7 +49,10 @@
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
 // For simplicity, this is just the max over all architectures.
 #define MachineStateSize 18 
-
+#define LOWEST_PRIORITY 255
+#define HIGEST_PRIORITY 0
+#define PRIORITY_FADE 0.75
+#define TIMESLICE_DEFAULT 1;
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
@@ -60,7 +63,8 @@
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call Thread::Print
-extern void ThreadPrint(int arg);	 
+extern void ThreadPrint(int arg);
+extern void DecreasePriority(int arg);
 
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
@@ -100,7 +104,32 @@ class Thread {
 						// overflowed its stack
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
-    void Print() { printf("%s, ", name); }
+    // Added by Rye 2012/09/22
+    // getTid
+    // getUid
+    int getTid() { return (tid); }
+    int getUid() { return (uid); }
+    int getPriority() { return (priority); }
+    void setPriority(int pri) { priority = pri; }
+    int getTimeSlice() { return (timeSlices); }
+    void setTimeSlice(int slice) { timeSlices = slice; }
+    void setDefaultTimeSlice() { timeSlices = TIMESLICE_DEFAULT; }
+
+
+    //void Print() { printf("%s, ", name); }
+    void Print() {
+    	//Print information of this thread.
+    	//printf("Tid\t\tUid\tThread Name\Thread status",);
+    	printf("%2d\t%2d\t%.5s\t\t", tid, uid, name);
+    	switch(status) {
+    	case JUST_CREATED : printf("JUST CREATED\t\t");break;
+    	case RUNNING :	printf("RUNNING\t\t");break;
+    	case BLOCKED :	printf("BLOCKED\t\t");break;
+    	case READY 	 :	printf("READY\t\t");break;
+    	}
+    	printf("%3d\t\t%3d\n", priority, timeSlices);
+    }
+    void DecreasePriority() { priority *= PRIORITY_FADE; }
 
   private:
     // some of the private data for this class is listed above
@@ -111,6 +140,11 @@ class Thread {
     ThreadStatus status;		// ready, running or blocked
     char* name;
 
+    //Added by Rye 2012/09/22
+    int tid;// thread id
+    int uid;// user id
+    int priority;
+    int timeSlices;
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
