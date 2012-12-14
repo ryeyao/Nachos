@@ -45,6 +45,8 @@ class MailHeader {
     MailBoxAddress from;	// Mail box to reply to
     unsigned length;		// Bytes of message data (excluding the 
 				// mail header)
+	int totalSlices; // Mail slices in total
+	int sliceIndex;  // Current Mail Slice index starts from 0
 };
 
 // Maximum "payload" -- real data -- that can included in a single message

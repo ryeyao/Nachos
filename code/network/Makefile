@@ -844,7 +844,7 @@ nettest.o: ../network/nettest.cc ../threads/copyright.h \
  ../machine/interrupt.h ../threads/list.h ../machine/stats.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
  ../network/post.h ../machine/network.h ../threads/synchlist.h \
- ../threads/synch.h ../network/post.h
+ ../threads/synch.h ../network/post.h ../network/fakesocket.h
 post.o: ../network/post.cc ../threads/copyright.h ../network/post.h \
  ../machine/network.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \
@@ -887,6 +887,30 @@ network.o: ../machine/network.cc ../threads/copyright.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
  ../network/post.h ../machine/network.h ../threads/synchlist.h \
  ../threads/synch.h
+fakesocket.o: ../network/fakesocket.cc ../network/fakesocket.h \
+ ../network/post.h ../threads/copyright.h ../machine/network.h \
+ ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
+ ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
+ /usr/include/i386-linux-gnu/bits/predefs.h \
+ /usr/include/i386-linux-gnu/sys/cdefs.h \
+ /usr/include/i386-linux-gnu/bits/wordsize.h \
+ /usr/include/i386-linux-gnu/gnu/stubs.h \
+ /usr/include/i386-linux-gnu/gnu/stubs-32.h \
+ /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h \
+ /usr/include/i386-linux-gnu/bits/types.h \
+ /usr/include/i386-linux-gnu/bits/typesizes.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/wchar.h ../threads/stdarg.h \
+ /usr/include/i386-linux-gnu/bits/stdio_lim.h \
+ /usr/include/i386-linux-gnu/bits/sys_errlist.h /usr/include/string.h \
+ /usr/include/xlocale.h ../threads/synchlist.h ../threads/list.h \
+ ../threads/utility.h ../threads/synch.h ../threads/thread.h \
+ ../machine/machine.h ../machine/translate.h ../machine/disk.h \
+ ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
+ ../userprog/bitmap.h ../filesys/openfile.h ../threads/system.h \
+ ../threads/scheduler.h ../machine/timer.h \
+ ../threads/scheduleralogrithms.h ../machine/interrupt.h \
+ ../threads/list.h ../machine/stats.h ../filesys/synchdisk.h \
+ ../machine/disk.h ../threads/synch.h ../network/post.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

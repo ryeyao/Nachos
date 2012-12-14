@@ -23,6 +23,7 @@
 #include "post.h"
 #include "interrupt.h"
 
+#include "fakesocket.h"
 // Test out message delivery, by doing the following:
 //	1. send a message to the machine with ID "farAddr", at mail box #0
 //	2. wait for the other machine's message to arrive (in our mailbox #0)
@@ -69,4 +70,17 @@ MailTest(int farAddr)
 
     // Then we're done!
     interrupt->Halt();
+}
+
+void FakeSocketTest(int farAddr) {
+	FakeSocket socket(farAddr, FAKE_TCP);
+	char* data = "Hello there!";
+	char* ack = "Got it!";
+	char buffer[strlen(data) + 1];
+
+
+	socket.Send(data);
+	socket.Receive(buffer, strlen(data) + 1);
+	printf("Received data: %s\n", buffer);
+	interrupt->Halt();
 }

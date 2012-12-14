@@ -103,6 +103,11 @@ Network::SendDone()
 void
 Network::Send(PacketHeader hdr, char* data)
 {
+	if (hdr.totalSlices > MaxPacketOnWire) { // beyond the capacity of the wire to hold this much long data
+		DEBUG('n', "Send failed. Too much data to send\n");
+		return ;
+	}
+
     char toName[32];
 
     sprintf(toName, "SOCKET_%d", (int)hdr.to);
@@ -110,6 +115,7 @@ Network::Send(PacketHeader hdr, char* data)
     ASSERT((sendBusy == FALSE) && (hdr.length > 0) 
 		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
     DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
+	printf("Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
 
     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
 
@@ -124,6 +130,7 @@ Network::Send(PacketHeader hdr, char* data)
     bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
     SendToSocket(sock, buffer, MaxWireSize, toName);
     delete []buffer;
+
 }
 
 // read a packet, if one is buffered
@@ -137,3 +144,5 @@ Network::Receive(char* data)
     	bcopy(inbox, data, hdr.length);
     return hdr;
 }
+
+	

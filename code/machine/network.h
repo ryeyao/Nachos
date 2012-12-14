@@ -35,11 +35,14 @@ class PacketHeader {
     unsigned length;	 	// bytes of packet data, excluding the 
 				// packet header (but including the 
 				// MailHeader prepended by the post office)
+	int totalSlices; // Packet slices in total
+	int sliceIndex;  // Current packet slice index starts from 0
 };
 
 #define MaxWireSize 	64	// largest packet that can go out on the wire
 #define MaxPacketSize 	(MaxWireSize - sizeof(struct PacketHeader))	
 				// data "payload" of the largest packet
+#define MaxPacketOnWire 1024  // Only 1024 packets are allowed to be on the wire at the same time
 
 
 // The following class defines a physical network device.  The network
@@ -96,6 +99,7 @@ class Network {
 				//   network
     PacketHeader inHdr;		// Information about arrived packet
     char inbox[MaxPacketSize];  // Data for arrived packet
+	void DivideAndSend(PacketHeader hdr, char* data);
 };
 
 #endif // NETWORK_H
