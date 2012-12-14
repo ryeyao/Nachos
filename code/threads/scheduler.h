@@ -15,7 +15,7 @@
 #include "timer.h"
 #include "scheduleralogrithms.h"
 #define TIME_DELAY 0
-#define SCHED_PRIORITY
+//#define SCHED_PRIORITY
 //#define SCHED_FIFO
 
 // The following class defines the scheduler/dispatcher abstraction -- 
