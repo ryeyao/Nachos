@@ -78,7 +78,7 @@ Network::CheckPktAvail()
     bcopy(buffer + sizeof(PacketHeader), inbox, inHdr.length);
     delete []buffer ;
 
-    DEBUG('n', "Network received packet from %d, length %d...\n",
+    DEBUG('n', "[NETWORK]: Network received packet from %d, length %d...\n",
 	  				(int) inHdr.from, inHdr.length);
     stats->numPacketsRecvd++;
 
@@ -86,6 +86,11 @@ Network::CheckPktAvail()
     (*readHandler)(handlerArg);	
 }
 
+void Network::LazySend()
+{
+    //SendToSocket(sock, lazyBuffer, MaxWireSize, toName);
+
+}
 // notify user that another packet can be sent
 void
 Network::SendDone()
@@ -93,6 +98,10 @@ Network::SendDone()
     sendBusy = FALSE;
     stats->numPacketsSent++;
     (*writeHandler)(handlerArg);
+
+	//printf("Reach here?\n");
+    //SendToSocket(sock, lazyBuffer, MaxWireSize, lazyToName);
+	//delete[] lazyBuffer;
 }
 
 // send a packet by concatenating hdr and data, and schedule
@@ -104,30 +113,31 @@ void
 Network::Send(PacketHeader hdr, char* data)
 {
 	if (hdr.totalSlices > MaxPacketOnWire) { // beyond the capacity of the wire to hold this much long data
-		DEBUG('n', "Send failed. Too much data to send\n");
+		DEBUG('n', "[NETWORK]: Send failed. Too much data to send\n");
 		return ;
 	}
 
     char toName[32];
 
     sprintf(toName, "SOCKET_%d", (int)hdr.to);
+	//sprintf(lazyToName, "SOCKET_%d", (int)hdr.to);
     
     ASSERT((sendBusy == FALSE) && (hdr.length > 0) 
 		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
-    DEBUG('n', "Sending to addr %d, %d bytes...\n ", hdr.to, hdr.length);
-	//printf("Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
+    DEBUG('n', "[NETWORK]: Sending to addr %d, %d bytes...\n ", hdr.to, hdr.length);
 
     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
 
     if (Random() % 100 >= chanceToWork * 100) { // emulate a lost packet
-	DEBUG('n', "oops, lost it!\n");
+	DEBUG('n', "[NETWORK]: oops, lost it!\n");
 	return;
     }
 
     // concatenate hdr and data into a single buffer, and send it out
-    char *buffer = new char[MaxWireSize];
+    char* buffer = new char[MaxWireSize];
     *(PacketHeader *)buffer = hdr;
     bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
+	//lazySend(toName);
     SendToSocket(sock, buffer, MaxWireSize, toName);
     delete []buffer;
 

@@ -25,6 +25,10 @@
 #include "initnetwork.h"
 
 #include "fakesocket.h"
+#include <iostream>
+#include "stdio.h"
+
+using namespace std;
 // Test out message delivery, by doing the following:
 //	1. send a message to the machine with ID "farAddr", at mail box #0
 //	2. wait for the other machine's message to arrive (in our mailbox #0)
@@ -79,21 +83,34 @@ MailTest(int farAddr)
 void FakeSocketTest(int farAddr) {
 	//Initialize();
 	FakeSocket socket(farAddr, FAKE_TCP);
-	char* clientData = "Hello there! I'm client.....";
+	char* clientData = "I'm in my position.";
 	char* serverResponse = "Roger that!";
+		char *input;
+		char *quit = "quit";
 
 
-	if (farAddr == 0) {
-		char buffer[strlen(clientData) + 1];
-		socket.Send(clientData);
-		socket.Receive(buffer, strlen(clientData) + 1);
-		printf("Client Received data: %s\n", buffer);
+	if (farAddr == 0 ) { // Server
+		while (true) {
+			printf("Server is listening for data....\n");
+			char* buffer = new char[100];
+			socket.Receive(buffer, strlen(clientData) + 1);
+			socket.Send(buffer); 
+			printf("Server Received data: %s\n", buffer);
+			delete[] buffer;
+		}
 	}
-	else {
-		char buffer[strlen(serverResponse) + 1];
-		socket.Receive(buffer, strlen(serverResponse) + 1);
-		socket.Send(serverResponse);
-		printf("Server Received data: %s\n", buffer);
-	}
+	else {  // Client
+		while(strcmp(quit,input)) {
+			printf("Client begins to send data...\nType something:");
+			input = new char[100];
+			cin>>input;
+			char* buffer = new char[100];
+			socket.Send(input); 
+			socket.Receive(buffer, strlen(serverResponse) + 1);
+			printf("Server: %s\n", buffer);
+			delete[] buffer;
+		}
+	} 
+	
 	interrupt->Halt();
 }

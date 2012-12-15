@@ -79,6 +79,7 @@ class Network {
 				// If no packet is waiting, return a header 
 				// with length 0.
 
+	void LazySend();
     void SendDone();		// Interrupt handler, called when message is 
 				// sent
     void CheckPktAvail();	// Check if there is an incoming packet
@@ -87,6 +88,9 @@ class Network {
     NetworkAddress ident;	// This machine's network address
     double chanceToWork;	// Likelihood packet will be dropped
     int sock;			// UNIX socket number for incoming packets
+	char* lazyBuffer;   // for lazy sending
+	char lazyToName[32];
+
     char sockName[32];		// File name corresponding to UNIX socket
     VoidFunctionPtr writeHandler; // Interrupt handler, signalling next packet 
 				//      can be sent.  

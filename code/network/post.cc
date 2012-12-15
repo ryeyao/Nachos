@@ -121,14 +121,15 @@ MailBox::Put(PacketHeader pktHdr, MailHeader mailHdr, char *data)
 void 
 MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data) 
 { 
-    DEBUG('n', "Waiting for mail in mailbox\n");
+    DEBUG('n', "  [MAILBOX]: Waiting for mail in mailbox\n");
     Mail *mail = (Mail *) messages->Remove();	// remove message from list;
 						// will wait if list is empty
+	DEBUG('n', "  [MAILBOX]: Awaken by Putting.\n");
 
     *pktHdr = mail->pktHdr;
     *mailHdr = mail->mailHdr;
     if (DebugIsEnabled('n')) {
-	printf("Got mail from mailbox: ");
+	printf("  [MAILBOX]: Got mail from mailbox: ");
 	PrintHeader(*pktHdr, *mailHdr);
     }
     bcopy(mail->data, data, mail->mailHdr.length);
@@ -232,7 +233,7 @@ PostOffice::PostalDelivery()
 
         mailHdr = *(MailHeader *)buffer;
         if (DebugIsEnabled('n')) {
-	    printf("Putting mail into mailbox: ");
+	    printf("[DAEMON]: Putting mail into mailbox: ");
 	    PrintHeader(pktHdr, mailHdr);
         }
 
@@ -265,7 +266,7 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, char* data)
 						// mailHdr + data
 
     if (DebugIsEnabled('n')) {
-	printf("Post send: ");
+	printf("[POSTOFFICE]: Post send: ");
 	PrintHeader(pktHdr, mailHdr);
     }
     ASSERT(mailHdr.length <= MaxMailSize);
@@ -282,7 +283,7 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, char* data)
     sendLock->Acquire();   		// only one message can be sent
 					// to the network at any one time
     network->Send(pktHdr, buffer);
-	DEBUG('n', "messageSent  P()! \n");
+	DEBUG('n', "[POSTOFFICE]: messageSent  P()! \n");
     messageSent->P();			// wait for interrupt to tell us
 					// ok to send the next message
     sendLock->Release();
@@ -312,6 +313,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
 {
     ASSERT((box >= 0) && (box < numBoxes));
 
+	printf("[POSTOFFICE]: Get mail from mail box %d\n", box);
     boxes[box].Get(pktHdr, mailHdr, data);
     ASSERT(mailHdr->length <= MaxMailSize);
 }
@@ -326,7 +328,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
 void
 PostOffice::IncomingPacket()
 { 
-	DEBUG('n', "messageAvailable!! V()\n");
+	DEBUG('n', "[POSTOFFICE]: messageAvailable!! V()\n");
     messageAvailable->V(); 
 }
 
@@ -343,7 +345,7 @@ PostOffice::IncomingPacket()
 void 
 PostOffice::PacketSent()
 { 
-	DEBUG('n', "messageSent! V()\n");
+	DEBUG('n', "[POSTOFFICE]: messageSent! V()\n");
     messageSent->V();
 }
 
