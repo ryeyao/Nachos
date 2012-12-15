@@ -3,7 +3,7 @@
 !_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
-!_TAG_PROGRAM_VERSION	5.8	//
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 $0	test/start.c	/^	addiu $2,$0,SC_Close$/;"	v
 $0	test/start.c	/^	addiu $2,$0,SC_Create$/;"	v
 $0	test/start.c	/^	addiu $2,$0,SC_Exec$/;"	v
@@ -18,6 +18,7 @@ $0	test/start.c	/^	addiu $2,$0,SC_Write$/;"	v
 $0	test/start.c	/^	addiu $2,$0,SC_Yield$/;"	v
 A	test/matmult.c	/^int A[Dim][Dim];$/;"	v
 A	test/sort.c	/^int A[1024];	\/* size of physical memory; with code, we'll run out of space!*\/$/;"	v
+ACK_1	network/faketcp.h	10;"	d
 ADDRSPACE_H	userprog/addrspace.h	14;"	d
 AOUTHDR	bin/coff.h	/^      } AOUTHDR;$/;"	t	typeref:struct:aouthdr
 AOUTHSZ	bin/coff.h	34;"	d
@@ -62,7 +63,7 @@ ByteToINodeSector	filesys/filehdr.cc	/^int FileHeader::ByteToINodeSector(int off
 ByteToSector	filesys/filehdr.cc	/^FileHeader::ByteToSector(int offset)$/;"	f	class:FileHeader
 C	test/matmult.c	/^int C[Dim][Dim];$/;"	v
 CC	bin/Makefile	/^CC=gcc$/;"	m
-CC	test/Makefile	/^CC = $(GCCDIR)gcc -B..\/..\/..\/gnu-decstation-ultrix\/$/;"	m
+CC	test/Makefile	/^CC = $(GCCDIR)gcc -B..\/..\/gnu-decstation-ultrix\/$/;"	m
 CFILES	filesys/Makefile	/^CFILES = $(THREAD_C) $(USERPROG_C) $(VM_C) $(FILESYS_C)$/;"	m
 CFILES	network/Makefile	/^CFILES = $(THREAD_C) $(USERPROG_C) $(VM_C) $(FILESYS_C) $(NETWORK_C)$/;"	m
 CFILES	threads/Makefile	/^CFILES = $(THREAD_C) $(USERPROG_C) $(VM_C) $(FILESYS_C)$/;"	m
@@ -176,6 +177,10 @@ ExceptionType	machine/machine.h	/^enum ExceptionType { NoException,           \/
 Exec	test/start.s	/^Exec:$/;"	l
 Exit	machine/sysdep.cc	/^Exit(int exitCode)$/;"	f
 Exit	test/start.s	/^Exit:$/;"	l
+FAKESOCKET_H_	network/fakesocket.h	8;"	d
+FAKETCP_H_	network/faketcp.h	8;"	d
+FAKE_TCP	network/fakesocket.h	/^	FAKE_TCP,$/;"	e	enum:FakeSocketType
+FAKE_UDP	network/fakesocket.h	/^	FAKE_UDP$/;"	e	enum:FakeSocketType
 FALSE	threads/bool.h	4;"	d
 FAST	bin/execute.c	14;"	d	file:
 FILEHDR_H	filesys/filehdr.h	15;"	d
@@ -184,6 +189,13 @@ FP	threads/switch.h	77;"	d
 FPState	threads/switch.h	143;"	d
 FPState	threads/switch.h	56;"	d
 FS_H	filesys/filesys.h	36;"	d
+FakeSocket	network/fakesocket.cc	/^FakeSocket::FakeSocket(NetworkAddress dest, FakeSocketType type) {$/;"	f	class:FakeSocket
+FakeSocket	network/fakesocket.h	/^class FakeSocket {$/;"	c
+FakeSocketTest	network/nettest.cc	/^void FakeSocketTest(int farAddr) {$/;"	f
+FakeSocketType	network/fakesocket.h	/^enum FakeSocketType {$/;"	g
+FakeTCP	network/faketcp.cc	/^FakeTCP::FakeTCP(NetworkAddress dest) {$/;"	f	class:FakeTCP
+FakeTCP	network/faketcp.h	/^class FakeTCP {$/;"	c
+FakeTCPHeader	network/faketcp.h	/^class FakeTCPHeader {$/;"	c
 FetchFrom	filesys/directory.cc	/^Directory::FetchFrom(OpenFile *file)$/;"	f	class:Directory
 FetchFrom	filesys/filehdr.cc	/^FileHeader::FetchFrom(int sector)$/;"	f	class:FileHeader
 FetchFrom	filesys/inode.cc	/^inode::FetchFrom(int sector)$/;"	f	class:inode
@@ -211,7 +223,7 @@ FreeMapFileSize	filesys/filehdr.h	52;"	d
 FreeMapFileSize	filesys/filesys.cc	62;"	d	file:
 FreeMapSector	filesys/filesys.cc	56;"	d	file:
 Front	threads/list.h	/^    ListElement *Front() { return first; }$/;"	f	class:List
-GCCDIR	test/Makefile	/^GCCDIR = ..\/..\/..\/gnu-decstation-ultrix\/decstation-ultrix\/2.95.3\/$/;"	m
+GCCDIR	test/Makefile	/^GCCDIR = ..\/..\/gnu-decstation-ultrix\/decstation-ultrix\/2.95.3\/$/;"	m
 Get	network/post.cc	/^MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data) $/;"	f	class:MailBox
 GetAllThreadList	threads/scheduler.h	/^    List *GetAllThreadList() {	return allThreadList; }$/;"	f	class:Scheduler
 GetChar	machine/console.cc	/^Console::GetChar()$/;"	f	class:Console
@@ -351,6 +363,7 @@ InitialPCState	threads/switch.h	122;"	d
 InitialPCState	threads/switch.h	144;"	d
 InitialPCState	threads/switch.h	57;"	d
 InitialPCState	threads/switch.h	87;"	d
+Initialize	network/initnetwork.cc	/^void Initialize() {$/;"	f
 Initialize	threads/system.cc	/^Initialize(int argc, char **argv)$/;"	f
 Instruction	machine/machine.h	/^class Instruction {$/;"	c
 IntOff	machine/interrupt.h	/^enum IntStatus { IntOff, IntOn };$/;"	e	enum:IntStatus
@@ -400,14 +413,15 @@ MAIN	bin/coff2noff.c	23;"	d	file:
 MAIN	bin/coff2noff.c	25;"	d	file:
 MAIN	bin/out.c	7;"	d	file:
 MAIN	bin/out.c	9;"	d	file:
-MAIN	threads/main.cc	49;"	d	file:
 MAIN	threads/main.cc	51;"	d	file:
+MAIN	threads/main.cc	53;"	d	file:
 MAKE	Makefile	/^MAKE = gmake$/;"	m
 MAXDATA	bin/out.c	34;"	d	file:
 MAXRELOCS	bin/out.c	31;"	d	file:
 MAXSCNS	bin/out.c	43;"	d	file:
 MAXSSPACE	bin/out.c	45;"	d	file:
 MAXSYMS	bin/out.c	44;"	d	file:
+MAX_TRY	network/faketcp.h	11;"	d
 MEMSIZE	bin/int.h	11;"	d
 MIPSELMAGIC	bin/coff.h	15;"	d
 MIPSSIM_H	machine/mipssim.h	11;"	d
@@ -434,12 +448,13 @@ MaxDoubleSize	filesys/filehdr.h	29;"	d
 MaxFileNum	filesys/filehdr.h	34;"	d
 MaxFileNum	filesys/filesys.h	57;"	d
 MaxFileSize	filesys/filehdr.h	31;"	d
-MaxMailSize	network/post.h	53;"	d
+MaxMailSize	network/post.h	55;"	d
 MaxOpcode	machine/mipssim.h	88;"	d
-MaxPacketSize	machine/network.h	41;"	d
+MaxPacketOnWire	machine/network.h	45;"	d
+MaxPacketSize	machine/network.h	43;"	d
 MaxSingleSize	filesys/filehdr.h	28;"	d
 MaxTripleSize	filesys/filehdr.h	30;"	d
-MaxWireSize	machine/network.h	40;"	d
+MaxWireSize	machine/network.h	42;"	d
 MemorySize	machine/machine.h	36;"	d
 ModuloDiff	machine/disk.cc	/^Disk::ModuloDiff(int to, int from)$/;"	f	class:Disk
 Mult	machine/mipssim.cc	/^Mult(int a, int b, bool signedArith, int* hiPtr, int* loPtr)$/;"	f	file:
@@ -644,7 +659,10 @@ ReadStruct	bin/coff2noff.c	67;"	d	file:
 ReadyToRun	threads/scheduler.cc	/^Scheduler::ReadyToRun (Thread *thread)$/;"	f	class:Scheduler
 Rear	threads/list.h	/^    ListElement *Rear() { return last; }$/;"	f	class:List
 Receive	machine/network.cc	/^Network::Receive(char* data)$/;"	f	class:Network
+Receive	network/fakesocket.cc	/^int FakeSocket::Receive(char* into, int numBytes) {$/;"	f	class:FakeSocket
+Receive	network/faketcp.cc	/^int FakeTCP::Receive(char* into) {$/;"	f	class:FakeTCP
 Receive	network/post.cc	/^PostOffice::Receive(int box, PacketHeader *pktHdr, $/;"	f	class:PostOffice
+ReceiveACK	network/faketcp.cc	/^bool FakeTCP::ReceiveACK(int index) {$/;"	f	class:FakeTCP
 RecurseRemove	filesys/filesys.cc	/^bool FileSystem::RecurseRemove(char *name) {\/\/just modified the DirectoryEntry$/;"	f	class:FileSystem
 Reg	bin/execute.c	/^int Reg[32];			\/* GPR's *\/$/;"	v
 RegType	machine/mipssim.h	/^enum RegType { NONE, RS, RT, RD, EXTRA }; $/;"	g
@@ -692,7 +710,6 @@ S7	threads/switch.h	36;"	d
 S8	threads/switch.h	105;"	d
 S9	threads/switch.h	106;"	d
 SCHEDULER_H	threads/scheduler.h	10;"	d
-SCHED_PRIORITY	threads/scheduler.h	18;"	d
 SC_Close	userprog/syscall.h	29;"	d
 SC_Create	userprog/syscall.h	25;"	d
 SC_Exec	userprog/syscall.h	23;"	d
@@ -745,8 +762,13 @@ Segment	bin/noff.h	/^} Segment;$/;"	t	typeref:struct:segment
 Semaphore	threads/synch.cc	/^Semaphore::Semaphore(char* debugName, int initialValue)$/;"	f	class:Semaphore
 Semaphore	threads/synch.h	/^class Semaphore {$/;"	c
 Send	machine/network.cc	/^Network::Send(PacketHeader hdr, char* data)$/;"	f	class:Network
+Send	network/fakesocket.cc	/^int FakeSocket::Send(char* data) {$/;"	f	class:FakeSocket
+Send	network/faketcp.cc	/^int FakeTCP::Send(char* data) {$/;"	f	class:FakeTCP
 Send	network/post.cc	/^PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, char* data)$/;"	f	class:PostOffice
+SendACK	network/faketcp.cc	/^bool FakeTCP::SendACK(int index) {$/;"	f	class:FakeTCP
+SendAll	network/faketcp.cc	/^int FakeTCP::SendAll(char* data) {$/;"	f	class:FakeTCP
 SendDone	machine/network.cc	/^Network::SendDone()$/;"	f	class:Network
+SendOne	network/faketcp.cc	/^void FakeTCP::SendOne(int index) {$/;"	f	class:FakeTCP
 SendToSocket	machine/sysdep.cc	/^SendToSocket(int sockID, char *buffer, int packetSize, char *toName)$/;"	f
 SetLevel	machine/interrupt.cc	/^Interrupt::SetLevel(IntStatus now)$/;"	f	class:Interrupt
 ShortToHost	bin/coff2noff.c	/^ShortToHost(unsigned short shortword) {$/;"	f
@@ -977,7 +999,9 @@ d	threads/scheduleralogrithms.cc	/^int d = 2;$/;"	v
 data	bin/out.c	/^  long data[MAXDATA];$/;"	m	struct:data	file:
 data	bin/out.c	/^struct data {$/;"	s	file:
 data	network/post.h	/^     char data[MaxMailSize];	\/\/ Payload -- message data$/;"	m	class:Mail
+dataLengths	network/faketcp.h	/^		int* dataLengths;  \/\/ Buffered data length that was just sent for future use$/;"	m	class:FakeTCP
 dataSectors	filesys/filehdr.h	/^	int dataSectors[NumDirect];		\/\/ Disk sector numbers for each data. Direct index.$/;"	m	class:FileHeader
+dataSent	network/faketcp.h	/^		char** dataSent;   \/\/ Buffered data that was just sent for future use$/;"	m	class:FakeTCP
 data_start	bin/coff.h	/^        long    data_start;     \/* base of data used for this file      *\/$/;"	m	struct:aouthdr
 datahead	bin/disasm.c	/^static SCNHDR texthead, rdatahead, datahead, sdatahead, sbsshead, bsshead;$/;"	v	file:
 datahead	bin/main.c	/^static SCNHDR texthead, rdatahead, datahead, sdatahead, sbsshead, bsshead;$/;"	v	file:
@@ -1015,6 +1039,7 @@ f_nsyms	bin/coff.h	/^        long            f_nsyms;        \/* sizeof(symbolic
 f_opthdr	bin/coff.h	/^        unsigned short  f_opthdr;       \/* sizeof(optional hdr) *\/$/;"	m	struct:filehdr
 f_symptr	bin/coff.h	/^        long            f_symptr;       \/* file pointer to symbolic header *\/$/;"	m	struct:filehdr
 f_timdat	bin/coff.h	/^        long            f_timdat;       \/* time & date stamp *\/$/;"	m	struct:filehdr
+fakeTCP	network/fakesocket.h	/^		FakeTCP *fakeTCP;$/;"	m	class:FakeSocket
 false	bin/execute.c	16;"	d	file:
 fetch	bin/int.h	19;"	d
 file	filesys/openfile.h	/^    int file;$/;"	m	class:OpenFile
@@ -1044,6 +1069,7 @@ fp	threads/switch.s	/^#define fp      $30     \/* frame pointer *\/$/;"	d
 freeMapFile	filesys/filesys.h	/^   OpenFile* freeMapFile;		\/\/ Bit map of free disk blocks,$/;"	m	class:FileSystem
 free_tidmap	threads/tid.cc	/^void free_tidmap(int tid) {$/;"	f
 from	machine/network.h	/^    NetworkAddress from;	\/\/ source machine ID$/;"	m	class:PacketHeader
+from	network/faketcp.h	/^		NetworkAddress from;$/;"	m	class:FakeTCPHeader
 from	network/post.h	/^    MailBoxAddress from;	\/\/ Mail box to reply to$/;"	m	class:MailHeader
 getFileType	filesys/filehdr.h	/^	int getFileType() { return fileType; }$/;"	f	class:FileHeader
 getLevel	machine/interrupt.h	/^    IntStatus getLevel() {return level;}\/\/ Return whether interrupts$/;"	f	class:Interrupt
@@ -1093,6 +1119,8 @@ immed	bin/instr.h	15;"	d
 inFileAddr	bin/noff.h	/^  int inFileAddr;		\/* location of segment in this file *\/$/;"	m	struct:segment
 inHandler	machine/interrupt.h	/^    bool inHandler;		\/\/ TRUE if we are running an interrupt handler$/;"	m	class:Interrupt
 inHdr	machine/network.h	/^    PacketHeader inHdr;		\/\/ Information about arrived packet$/;"	m	class:Network
+inMailHdr	network/faketcp.h	/^		MailHeader inMailHdr;$/;"	m	class:FakeTCP
+inPktHdr	network/faketcp.h	/^		PacketHeader inPktHdr;$/;"	m	class:FakeTCP
 inUse	filesys/directory.h	/^	bool inUse;				\/\/ Is this directory entry in use?$/;"	m	class:DirectoryEntry
 inbox	machine/network.h	/^    char inbox[MaxPacketSize];  \/\/ Data for arrived packet$/;"	m	class:Network
 incoming	machine/console.h	/^    char incoming;    			\/\/ Contains the character to be read,$/;"	m	class:Console
@@ -1110,6 +1138,7 @@ l1	threads/switch.c	/^	mov	%l1, %o0   \/* Using delay slot to setup argument to 
 l2	threads/switch.c	/^	call	%l2, 0$/;"	v
 last	threads/list.h	/^    ListElement *last;		\/\/ Last element of list$/;"	m	class:List
 lastAccessTime	filesys/directory.h	/^	char lastAccessTime[25];\/\/Time that this file is last visited.$/;"	m	class:DirectoryEntry
+lastIndex	network/faketcp.h	/^		int lastIndex;$/;"	m	class:FakeTCP
 lastModifyTime	filesys/directory.h	/^	char lastModifyTime[25];\/\/Time that this file is last modified.$/;"	m	class:DirectoryEntry
 lastSector	machine/disk.h	/^    int lastSector;			\/\/ The previous disk request $/;"	m	class:Disk
 last_tid	threads/tid.cc	/^static int last_tid = -1;$/;"	v	file:
@@ -1145,6 +1174,8 @@ machine	threads/system.cc	/^Machine *machine;	\/\/ user program memory and regis
 machineState	threads/thread.h	/^    int machineState[MachineStateSize];  \/\/ all registers except for stackTop$/;"	m	class:Thread
 magic	bin/coff.h	/^        short   magic;          \/* see above                            *\/$/;"	m	struct:aouthdr
 mailHdr	network/post.h	/^     MailHeader mailHdr;	\/\/ Header appended by PostOffice$/;"	m	class:Mail
+mailHdrList	network/faketcp.h	/^		List* mailHdrList;  \/\/ Mapped mail with mail header$/;"	m	class:FakeTCP
+mailList	network/faketcp.h	/^		List* mailList;   \/\/ Hold the mail that has been received$/;"	m	class:FakeTCP
 main	bin/coff2flat.c	/^main (int argc, char **argv)$/;"	f
 main	bin/coff2noff.c	/^main (int argc, char **argv)$/;"	f
 main	bin/disasm.c	/^main(argc, argv)$/;"	f
@@ -1212,6 +1243,8 @@ opCode	machine/machine.h	/^    char opCode;     \/\/ Type of instruction.  This 
 opCode	machine/mipssim.h	/^    int opCode;		\/* Translated op code. *\/$/;"	m	struct:OpInfo
 opStrings	machine/mipssim.h	/^static struct OpString opStrings[] = {$/;"	v	typeref:struct:OpString
 opTable	machine/mipssim.h	/^static OpInfo opTable[] = {$/;"	v
+outMailHdr	network/faketcp.h	/^		MailHeader outMailHdr;$/;"	m	class:FakeTCP
+outPktHdr	network/faketcp.h	/^		PacketHeader outPktHdr;$/;"	m	class:FakeTCP
 outfile	bin/out.c	/^static FILE *outfile = stdout;$/;"	v	file:
 packetAvail	machine/network.h	/^    bool packetAvail;		\/\/ Packet has arrived, can be pulled off of$/;"	m	class:Network
 page	threads/tid.h	/^    void *page;$/;"	m	struct:tidmap
@@ -1341,6 +1374,8 @@ shamt	bin/instr.h	14;"	d
 singleIndex	filesys/filehdr.h	/^	int singleIndex;$/;"	m	class:FileHeader
 singleStep	machine/machine.h	/^    bool singleStep;		\/\/ drop back into the debugger after each$/;"	m	class:Machine
 size	bin/noff.h	/^  int size;			\/* size of segment *\/$/;"	m	struct:segment
+sliceIndex	machine/network.h	/^	int sliceIndex;  \/\/ Current packet slice index starts from 0$/;"	m	class:PacketHeader
+sliceIndex	network/post.h	/^	int sliceIndex;  \/\/ Current Mail Slice index starts from 0$/;"	m	class:MailHeader
 sock	machine/network.h	/^    int sock;			\/\/ UNIX socket number for incoming packets$/;"	m	class:Network
 sockName	machine/network.h	/^    char sockName[32];		\/\/ File name corresponding to UNIX socket$/;"	m	class:Network
 sp	threads/switch.c	/^	sw	sp, SP(a0)		# save new stack pointer$/;"	v
@@ -1392,8 +1427,11 @@ timer	threads/system.cc	/^Timer *timer;				\/\/ the hardware timer device,$/;"	v
 timerInter	threads/scheduler.h	/^    Timer *timerInter;$/;"	m	class:Scheduler
 tlb	machine/machine.h	/^    TranslationEntry *tlb;		\/\/ this pointer should be considered $/;"	m	class:Machine
 to	machine/network.h	/^    NetworkAddress to;		\/\/ Destination machine ID$/;"	m	class:PacketHeader
+to	network/faketcp.h	/^		NetworkAddress to;$/;"	m	class:FakeTCPHeader
 to	network/post.h	/^    MailBoxAddress to;		\/\/ Destination mail box$/;"	m	class:MailHeader
 top4	bin/instr.h	18;"	d
+totalSlices	machine/network.h	/^	int totalSlices; \/\/ Packet slices in total$/;"	m	class:PacketHeader
+totalSlices	network/post.h	/^	int totalSlices; \/\/ Mail slices in total$/;"	m	class:MailHeader
 totalTicks	machine/stats.h	/^    int totalTicks;      	\/\/ Total time running Nachos$/;"	m	class:Statistics
 tripleIndex	filesys/filehdr.h	/^	int tripleIndex;$/;"	m	class:FileHeader
 true	bin/execute.c	15;"	d	file:
@@ -1401,6 +1439,7 @@ ts	threads/threadtest.cc	/^Ts *ts = new Ts();$/;"	v
 ts1	threads/synctest.cc	/^Ts *ts1 = new Ts();$/;"	v
 tsize	bin/coff.h	/^        long    tsize;          \/* text size in bytes, padded to DW bdry*\/$/;"	m	struct:aouthdr
 type	machine/interrupt.h	/^    IntType type;		\/\/ for debugging$/;"	m	class:PendingInterrupt
+type	network/fakesocket.h	/^		FakeSocketType type;$/;"	m	class:FakeSocket
 u	bin/execute.c	/^u()				\/* unimplemented *\/$/;"	f
 u_to_int_addr	bin/system.c	/^char *u_to_int_addr(ptr)$/;"	f
 u_to_int_fd	bin/system.c	/^u_to_int_fd(fd)$/;"	f
@@ -1441,6 +1480,8 @@ z	threads/switch.s	/^#define z       $0      \/* zero register *\/$/;"	d
 ~Console	machine/console.cc	/^Console::~Console()$/;"	f	class:Console
 ~Directory	filesys/directory.cc	/^Directory::~Directory()$/;"	f	class:Directory
 ~Disk	machine/disk.cc	/^Disk::~Disk()$/;"	f	class:Disk
+~FakeSocket	network/fakesocket.cc	/^FakeSocket::~FakeSocket() {$/;"	f	class:FakeSocket
+~FakeTCP	network/faketcp.cc	/^FakeTCP::~FakeTCP() {$/;"	f	class:FakeTCP
 ~Interrupt	machine/interrupt.cc	/^Interrupt::~Interrupt()$/;"	f	class:Interrupt
 ~List	threads/list.cc	/^List::~List()$/;"	f	class:List
 ~Lock	threads/synch.cc	/^Lock::~Lock() {$/;"	f	class:Lock

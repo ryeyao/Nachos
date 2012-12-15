@@ -99,7 +99,6 @@ class Network {
 				//   network
     PacketHeader inHdr;		// Information about arrived packet
     char inbox[MaxPacketSize];  // Data for arrived packet
-	void DivideAndSend(PacketHeader hdr, char* data);
 };
 
 #endif // NETWORK_H

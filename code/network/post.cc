@@ -282,6 +282,7 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, char* data)
     sendLock->Acquire();   		// only one message can be sent
 					// to the network at any one time
     network->Send(pktHdr, buffer);
+	DEBUG('n', "messageSent  P()! \n");
     messageSent->P();			// wait for interrupt to tell us
 					// ok to send the next message
     sendLock->Release();
@@ -325,6 +326,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
 void
 PostOffice::IncomingPacket()
 { 
+	DEBUG('n', "messageAvailable!! V()\n");
     messageAvailable->V(); 
 }
 
@@ -341,6 +343,7 @@ PostOffice::IncomingPacket()
 void 
 PostOffice::PacketSent()
 { 
+	DEBUG('n', "messageSent! V()\n");
     messageSent->V();
 }
 

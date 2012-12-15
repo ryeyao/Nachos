@@ -38,6 +38,8 @@
 //    -n sets the network reliability
 //    -m sets this machine's host id (needed for the network)
 //    -o runs a simple test of the Nachos network software
+//    -side c for client, s for server
+//  
 //
 //  NOTE -- flags are ignored until the relevant assignment.
 //  Some of the flags are interpreted here; some in system.cc.

@@ -22,6 +22,7 @@
 #include "network.h"
 #include "post.h"
 #include "interrupt.h"
+#include "initnetwork.h"
 
 #include "fakesocket.h"
 // Test out message delivery, by doing the following:
@@ -72,17 +73,27 @@ MailTest(int farAddr)
     interrupt->Halt();
 }
 
+// FakeSocketTest
+// farAddr 
+//  0 is client, 1 is server
 void FakeSocketTest(int farAddr) {
+	//Initialize();
 	FakeSocket socket(farAddr, FAKE_TCP);
-	char* data = "Hello there! hahahahahahahahahahahahhahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
-	char* ack = "Got it!";
-	char buffer[strlen(data) + 1];
+	char* clientData = "Hello there! I'm client.....";
+	char* serverResponse = "Roger that!";
 
 
-	socket.Send(data);
-	socket.Receive(buffer, strlen(data) + 1);
-	socket.SendACK();
-	socket.ReceiveACK();
-	printf("Received data: %s\n", buffer);
+	if (farAddr == 0) {
+		char buffer[strlen(clientData) + 1];
+		socket.Send(clientData);
+		socket.Receive(buffer, strlen(clientData) + 1);
+		printf("Client Received data: %s\n", buffer);
+	}
+	else {
+		char buffer[strlen(serverResponse) + 1];
+		socket.Receive(buffer, strlen(serverResponse) + 1);
+		socket.Send(serverResponse);
+		printf("Server Received data: %s\n", buffer);
+	}
 	interrupt->Halt();
 }
