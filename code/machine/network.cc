@@ -114,8 +114,8 @@ Network::Send(PacketHeader hdr, char* data)
     
     ASSERT((sendBusy == FALSE) && (hdr.length > 0) 
 		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
-    DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
-	printf("Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
+    DEBUG('n', "Sending to addr %d, %d bytes...\n ", hdr.to, hdr.length);
+	//printf("Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
 
     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
 

@@ -6,7 +6,6 @@
 
 #ifndef FAKESOCKET_H_
 #define FAKESOCKET_H_
-#endif
 
 #include "post.h"
 
@@ -22,9 +21,13 @@ class FakeSocket {
 		NetworkAddress to;
 		NetworkAddress from;
 		
-		FakeSocket(NetworkAddress to, FakeSocketType type); // Constructor
+		FakeSocket(NetworkAddress dest, FakeSocketType type); // Constructor
+		~FakeSocket();
 		int Send(char* data); // Send data, return number of bytes that have been sent.
 		int Receive(char* into, int numBytes); // Receive *numBytes* of data into buffer *into*, return number of bytes that have been actually received
+
+		void ReceiveACK();
+		void SendACK();
 
 	private:
 		List* mailList;
@@ -33,7 +36,6 @@ class FakeSocket {
 		PacketHeader inPktHdr;
 		MailHeader outMailHdr;
 		MailHeader inMailHdr;
-		void ReceiveACK();
-		void SendACK();
 
 };
+#endif

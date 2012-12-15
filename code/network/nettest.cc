@@ -74,13 +74,15 @@ MailTest(int farAddr)
 
 void FakeSocketTest(int farAddr) {
 	FakeSocket socket(farAddr, FAKE_TCP);
-	char* data = "Hello there!";
+	char* data = "Hello there! hahahahahahahahahahahahhahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
 	char* ack = "Got it!";
 	char buffer[strlen(data) + 1];
 
 
 	socket.Send(data);
 	socket.Receive(buffer, strlen(data) + 1);
+	socket.SendACK();
+	socket.ReceiveACK();
 	printf("Received data: %s\n", buffer);
 	interrupt->Halt();
 }

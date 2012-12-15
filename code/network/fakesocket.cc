@@ -8,14 +8,20 @@
 #include "system.h"
 #include "utility.h"
 
-FakeSocket::FakeSocket(NetworkAddress to, FakeSocketType type) {
+FakeSocket::FakeSocket(NetworkAddress dest, FakeSocketType type) {
 
-	outPktHdr.to = to;
+	outPktHdr.to = dest;
 	outMailHdr.to = 0;
 	outMailHdr.from = 1;
 	mailList = new List();
 	mailHdrList = new List();
 
+}
+
+FakeSocket::~FakeSocket() {
+
+	delete mailList;
+	delete mailHdrList;
 }
 
 int FakeSocket::Send(char* data) {
@@ -36,8 +42,8 @@ int FakeSocket::Send(char* data) {
 			outMailHdr.length = (strlen(data) + 1) % MaxMailSize;
 		}
 
+		postOffice->Send(outPktHdr, outMailHdr, data + bytesSent);
 		bytesSent += outMailHdr.length;
-		postOffice->Send(outPktHdr, outMailHdr, data);
 	}
 
 	//ReceiveACK();
@@ -56,6 +62,7 @@ int FakeSocket::Receive(char* into, int numBytes) {
 
 		buffer = new char[MaxMailSize];
 		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+		//printf("\nBuffer is %s index %d\n", buffer, inMailHdr.sliceIndex);
 		mailList->SortedInsert((void *)buffer, inMailHdr.sliceIndex);
 		mailHdrList->SortedInsert((void *)&inMailHdr, inMailHdr.sliceIndex);
 		bytesRead += inMailHdr.length;
@@ -65,10 +72,10 @@ int FakeSocket::Receive(char* into, int numBytes) {
 	int length = 0;
 	while (!mailList->IsEmpty()) {
 		inMailHdr = *((MailHeader *)mailHdrList->Remove());
-		length += inMailHdr.length;
 		buffer =(char *)mailList->Remove();
 		bcopy(buffer, into + length, inMailHdr.length );
-		delete buffer;
+		length += inMailHdr.length;
+		delete[] buffer;
 	}
 	
 	//SendACK();
@@ -94,6 +101,7 @@ void FakeSocket::ReceiveACK() {
 	
 	char ack;
 	postOffice->Receive(1, &inPktHdr, &inMailHdr, &ack);
-	fflush(stdout);
+
 	DEBUG('n', "Received ACK=%c from %d to %d\n", ack, inPktHdr.from, inPktHdr.to);
+	fflush(stdout);
 }
