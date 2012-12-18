@@ -28,20 +28,16 @@ class FakeTCP {
 
 		
 	private:
-		List* mailList;   // Hold the mail that has been received
-		List* mailHdrList;  // Mapped mail with mail header
-		char** dataSent;   // Buffered data that was just sent for future use
-		int* dataLengths;  // Buffered data length that was just sent for future use
-		PacketHeader outPktHdr;
-		PacketHeader inPktHdr;
-		MailHeader outMailHdr;
-		MailHeader inMailHdr;
 		int lastIndex;
+		NetworkAddress destination;
+		int totalLost;
+		int totalReceive;
+		float lostRate;
 
 		// Private functions
 		bool ReceiveACK(int index);
-		bool SendACK(int index);
+		bool SendACK(PacketHeader* inPktHdr, MailHeader* inMailHdr);
 		int SendAll(char* data);
-		void SendOne(int index);  // Send data of index bigger than *index*
+		void SendOne(PacketHeader outPktHdr, MailHeader outMailHdr, char* data);  // Send data of index bigger than *index*
 };
 #endif

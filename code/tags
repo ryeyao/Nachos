@@ -146,6 +146,7 @@ DeallocBoundedArray	machine/sysdep.cc	/^DeallocBoundedArray(char *ptr, int size)
 Deallocate	filesys/filehdr.cc	/^FileHeader::Deallocate(BitMap *freeMap)$/;"	f	class:FileHeader
 DebugInit	threads/utility.cc	/^DebugInit(char *flagList)$/;"	f
 DebugIsEnabled	threads/utility.cc	/^DebugIsEnabled(char flag)$/;"	f
+DebugPrintHeader	network/faketcp.cc	/^static void DebugPrintHeader(PacketHeader pktHdr, MailHeader mailHdr) {$/;"	f	file:
 Debugger	machine/machine.cc	/^void Machine::Debugger()$/;"	f	class:Machine
 DecFileLength	filesys/filehdr.h	/^	void DecFileLength(int bytesToDel, int sectorsToDel) {$/;"	f	class:FileHeader
 Decode	machine/mipssim.cc	/^Instruction::Decode()$/;"	f	class:Instruction
@@ -392,6 +393,7 @@ LOWEST_PRIORITY	threads/thread.h	52;"	d
 LPR	Makefile	/^LPR = lpr$/;"	m
 LRD	bin/disasm.c	/^int NROWS=64, ASSOC=1, LINESIZE=4, RAND=0, LRD=0;$/;"	v
 LRD	bin/main.c	/^int NROWS=64, ASSOC=1, LINESIZE=4, RAND=0, LRD=0;$/;"	v
+LazySend	machine/network.cc	/^void Network::LazySend()$/;"	f	class:Network
 Length	filesys/openfile.cc	/^OpenFile::Length() $/;"	f	class:OpenFile
 Length	filesys/openfile.h	/^    int Length() { Lseek(file, 0, 2); return Tell(file); }$/;"	f	class:OpenFile
 List	filesys/directory.cc	/^Directory::List()$/;"	f	class:Directory
@@ -731,14 +733,9 @@ SP	threads/switch.h	96;"	d
 SPECIAL	machine/mipssim.h	105;"	d
 STACK_FENCEPOST	threads/thread.cc	26;"	d	file:
 STATS_H	machine/stats.h	12;"	d
-SWITCH	filesys/swtch.s	/^SWITCH:$/;"	l
-SWITCH	network/swtch.s	/^SWITCH:$/;"	l
 SWITCH	threads/switch-old.s	/^SWITCH:$/;"	l
 SWITCH	threads/switch.s	/^SWITCH$/;"	l
 SWITCH	threads/switch.s	/^SWITCH:$/;"	l
-SWITCH	threads/swtch.s	/^SWITCH:$/;"	l
-SWITCH	userprog/swtch.s	/^SWITCH:$/;"	l
-SWITCH	vm/swtch.s	/^SWITCH:$/;"	l
 SWITCH_H	threads/switch.h	18;"	d
 SYNCHCONSOLE_H_	userprog/synchconsole.h	30;"	d
 SYNCHDISK_H	filesys/synchdisk.h	12;"	d
@@ -832,14 +829,9 @@ Thread	threads/thread.cc	/^Thread::Thread(char* threadName)$/;"	f	class:Thread
 Thread	threads/thread.h	/^class Thread {$/;"	c
 ThreadFinish	threads/thread.cc	/^static void ThreadFinish()    { currentThread->Finish(); }$/;"	f	file:
 ThreadPrint	threads/thread.cc	/^void ThreadPrint(int arg){$/;"	f
-ThreadRoot	filesys/swtch.s	/^ThreadRoot:$/;"	l
-ThreadRoot	network/swtch.s	/^ThreadRoot:$/;"	l
 ThreadRoot	threads/switch-old.s	/^ThreadRoot:$/;"	l
 ThreadRoot	threads/switch.s	/^ThreadRoot$/;"	l
 ThreadRoot	threads/switch.s	/^ThreadRoot:$/;"	l
-ThreadRoot	threads/swtch.s	/^ThreadRoot:$/;"	l
-ThreadRoot	userprog/swtch.s	/^ThreadRoot:$/;"	l
-ThreadRoot	vm/swtch.s	/^ThreadRoot:$/;"	l
 ThreadStatus	threads/thread.h	/^enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };$/;"	g
 ThreadTest	threads/threadtest.cc	/^ThreadTest(int num)$/;"	f
 ThreadTest1	threads/threadtest.cc	/^void ThreadTest1()$/;"	f
@@ -1142,6 +1134,8 @@ lastIndex	network/faketcp.h	/^		int lastIndex;$/;"	m	class:FakeTCP
 lastModifyTime	filesys/directory.h	/^	char lastModifyTime[25];\/\/Time that this file is last modified.$/;"	m	class:DirectoryEntry
 lastSector	machine/disk.h	/^    int lastSector;			\/\/ The previous disk request $/;"	m	class:Disk
 last_tid	threads/tid.cc	/^static int last_tid = -1;$/;"	v	file:
+lazyBuffer	machine/network.h	/^	char* lazyBuffer;   \/\/ for lazy sending$/;"	m	class:Network
+lazyToName	machine/network.h	/^	char lazyToName[32];$/;"	m	class:Network
 ld	threads/switch.c	/^	ld	[%l0+I0], %i0$/;"	v
 ld	threads/switch.c	/^	ld	[%l0+I1], %i1$/;"	v
 ld	threads/switch.c	/^	ld	[%l0+I2], %i2$/;"	v

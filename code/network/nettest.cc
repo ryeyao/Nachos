@@ -92,7 +92,7 @@ void FakeSocketTest(int farAddr) {
 	if (farAddr == 0 ) { // Server
 		while (true) {
 			printf("Server is listening for data....\n");
-			char* buffer = new char[100];
+			char* buffer = new char[1000];
 			socket.Receive(buffer, strlen(clientData) + 1);
 			socket.Send(buffer); 
 			printf("Server Received data: %s\n", buffer);
@@ -102,9 +102,9 @@ void FakeSocketTest(int farAddr) {
 	else {  // Client
 		while(strcmp(quit,input)) {
 			printf("Client begins to send data...\nType something:");
-			input = new char[100];
+			input = new char[1000];
 			cin>>input;
-			char* buffer = new char[100];
+			char* buffer = new char[1000];
 			socket.Send(input); 
 			socket.Receive(buffer, strlen(serverResponse) + 1);
 			printf("Server: %s\n", buffer);

@@ -17,20 +17,14 @@ static void DebugPrintHeader(PacketHeader pktHdr, MailHeader mailHdr) {
 
 FakeTCP::FakeTCP(NetworkAddress dest) {
 
-	outPktHdr.to = dest;
-	outMailHdr.to = 0;
-	outMailHdr.from = 1;
-	mailList = new List();
-	mailHdrList = new List();
+	destination = dest;
+	lostRate = 0.0;
+	totalLost = 0;
+	totalReceive = 0;
 }
 
 FakeTCP::~FakeTCP() {
 
-	if (dataSent) {
-		delete[] dataSent;
-	}
-	delete mailHdrList;
-	delete mailList;
 }
 
 int FakeTCP::Send(char* data) {
@@ -39,27 +33,35 @@ int FakeTCP::Send(char* data) {
 }
 
 // Send data of index *index*
-void FakeTCP::SendOne(int index) {
+void FakeTCP::SendOne(PacketHeader outPktHdr, MailHeader outMailHdr, char* data) {
 
 	outMailHdr.to = 0;
 	outMailHdr.from = 1;
-	outMailHdr.sliceIndex = index;
-	outMailHdr.length = dataLengths[index];
-	postOffice->Send(outPktHdr, outMailHdr, dataSent[index]);
+	DEBUG('n', "Debug: SendOne data is %s\n", data);
+	postOffice->Send(outPktHdr, outMailHdr, data);
+	fflush(stdout);
 }
 
 int FakeTCP::SendAll(char* data) {
 
-	int bytesSent = 0;
+	int bytesSent = 0, i;
+	PacketHeader outPktHdr;
+	MailHeader outMailHdr;
+
+	// send data from local mail box #1 to remote mail box #0
+	outMailHdr.to = 0;  
+	outMailHdr.from = 1; 
 	outMailHdr.totalSlices = divRoundUp(strlen(data) + 1, MaxMailSize);
 	outMailHdr.length = MaxMailSize;
-	outPktHdr.totalSlices = outMailHdr.totalSlices;
-	char* dataSlice;
-	dataSent = new char*[outMailHdr.totalSlices];
-	dataLengths = new int[outMailHdr.totalSlices];
 
+	outPktHdr.to = destination;
+	outPktHdr.from = -1;
+	outPktHdr.totalSlices = outMailHdr.totalSlices;
+
+	DEBUG('n', "\n======>\nData len is %d, should be divided into %d slices\n", strlen(data) + 1, outMailHdr.totalSlices);
 	// divide data into packets and send
-	for (int i = 0; i < outMailHdr.totalSlices; i++) {
+	int length = 0;
+	for (i = 0; i < outMailHdr.totalSlices; i++) {
 
 		outMailHdr.sliceIndex = i;
 
@@ -67,28 +69,24 @@ int FakeTCP::SendAll(char* data) {
 			outMailHdr.length = (strlen(data) + 1) % MaxMailSize;
 		}
 
-		// add data into dataSent list
-		dataSlice = new char[MaxMailSize];
-		strncpy(dataSlice, data + bytesSent, outMailHdr.length);
-		dataSent[i] = dataSlice;
-		dataLengths[i] = outMailHdr.length;
-
-		// Send data of index *i* to remote machine. 
+		// Send data to remote machine. 
 		// Check if the data had been received.
 		int timeout = 0;
-		SendOne(i);
-		while (timeout++ < MAX_TRY && !ReceiveACK(i)) {
+		SendOne(outPktHdr, outMailHdr, data + length);
+		length += outMailHdr.length;
+		bool isSentRight = ReceiveACK(i);
+		while (timeout++ < MAX_TRY && !isSentRight) {
 
-			DEBUG('n', "No response! Send again...\n");
-			SendOne(i);
+			DEBUG('n', "FakeTCP::SendAll Packet may be lost, send again(%d)...\n", timeout);
+			SendOne(outPktHdr, outMailHdr, data + length);
+			isSentRight = ReceiveACK(i);
 		}
 		bytesSent += outMailHdr.length;
 		if (timeout >= MAX_TRY) {
-			delete[] dataSlice;
-			return bytesSent;
+			DEBUG('n', "FakeTCP::SendAll No response!\n");
+			break;
 		}
 	}
-	delete[] dataSlice;
 	return bytesSent;
 }
 
@@ -97,6 +95,8 @@ int FakeTCP::SendAll(char* data) {
 bool FakeTCP::ReceiveACK(int index) {
 
 	char* buffer = NULL;	
+	PacketHeader inPktHdr;
+	MailHeader inMailHdr;
 
 	buffer = new char[MaxMailSize];
 	postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
@@ -122,67 +122,91 @@ int FakeTCP::Receive(char* into) {
 
 	int bytesRead = 0;
 	char* buffer = NULL;	
+	PacketHeader* inPktHdr;
+	MailHeader* inMailHdr;
+	List* mailList = new List();
+	List* mailHdrList = new List();
 
-	DEBUG('n', "Receiving data using FakeSocket::Receive\n");
+	DEBUG('n', "Retrive data using FakeSocket::Receive\n");
 
 	int timeout = 0;
 	lastIndex = -1;
 	while(true) {
 		buffer = new char[MaxMailSize];
-		postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+		inPktHdr = new PacketHeader();
+		inMailHdr = new MailHeader();
+
+		postOffice->Receive(0, inPktHdr, inMailHdr, buffer);
+		DEBUG('n', "Debug: buffer is %s, len is %d, buffer hdr.length is %d\n", buffer, strlen(buffer), inMailHdr->length);
 	
-		SendACK(inMailHdr.sliceIndex);
-		if (lastIndex + 1 == inMailHdr.sliceIndex) {
-			DEBUG('n', "Got the right data packet.\n");
-			mailList->SortedInsert((void *)buffer, inMailHdr.sliceIndex);
-			mailHdrList->SortedInsert((void *)&inMailHdr, inMailHdr.sliceIndex);
-			bytesRead += inMailHdr.length;
+		if (lastIndex + 1 == inMailHdr->sliceIndex) {
+			totalReceive++;
+			DEBUG('n', "Got the right data packet. Insert #%d hdr(len = %d)\n", inMailHdr->sliceIndex, inMailHdr->length);
+
+			mailList->SortedInsert((void *)buffer, inMailHdr->sliceIndex);
+			mailHdrList->SortedInsert(inMailHdr, inMailHdr->sliceIndex);
+			bytesRead += inMailHdr->length;
 		} else {
-			DEBUG('n', "Get the wrong data packet.\n");
 
+			totalLost++;
+			lostRate = totalLost / (totalLost + totalReceive);
+			DEBUG('n', "Get the wrong data packet.(%.2f\% lost)\n", lostRate);
+			SendACK(inPktHdr, inMailHdr);
 			delete[] buffer;
-		}
-		DEBUG('n', "See what happened.\n");
 
-		timeout++;
-		if (inMailHdr.sliceIndex == inMailHdr.totalSlices - 1 )
-		{
-			DEBUG('n', "FakeTCP::Receive all data received successfully.\n");
-			break;
-		} else if (	timeout >= MAX_TRY * inMailHdr.totalSlices) {
-			DEBUG('n', "FakeTCP::Receive receiving time out.\n");
-			return 0;
+			if (timeout++ >= MAX_TRY * inMailHdr->totalSlices) {
+				DEBUG('n', "FakeTCP::Receive: receiving time out.\n");
+				break;
+			}
+			continue;
 		}
-		lastIndex = inMailHdr.sliceIndex;
+
+		SendACK(inPktHdr, inMailHdr);
+
+		if (inMailHdr->sliceIndex == inMailHdr->totalSlices - 1 )
+		{
+			DEBUG('n', "FakeTCP::Receive: all data received successfully.\n");
+			break;
+		} 
+		lastIndex = inMailHdr->sliceIndex;
 	}
 
-	DEBUG('n', "Data received has %d mails or %d bytes in total\n", inMailHdr.totalSlices, bytesRead);
+	DEBUG('n', "Data received has %d mails or %d bytes in total\n", inMailHdr->totalSlices, bytesRead);
 	int length = 0;
-	while (!mailList->IsEmpty()) {
-		inMailHdr = *((MailHeader *)mailHdrList->Remove());
+	while (!mailList->IsEmpty() && !mailHdrList->IsEmpty()) {
+		inMailHdr = (MailHeader *)mailHdrList->Remove();
+		//int len += (*mailHdrList->Remove())->length;
 		buffer =(char *)mailList->Remove();
-		bcopy(buffer, into + length, inMailHdr.length );
-		length += inMailHdr.length;
+		strncpy(into + length, buffer, inMailHdr->length);
+		DEBUG('n', "Debug: buffer is %s, len is %d, buffer #%d hdr.length is %d\ninto is %s, into+length is %s\n", buffer, strlen(buffer), inMailHdr->sliceIndex, inMailHdr->length, into, into+length);
+		length += inMailHdr->length;
 		delete[] buffer;
 	}
+	DEBUG('n', "Debug: into is %s\n", into);
+
+	delete mailList;
+	delete mailHdrList;
 
 	return bytesRead;
 
 }
 
-bool FakeTCP::SendACK(int index) {
+bool FakeTCP::SendACK(PacketHeader* inPktHdr, MailHeader* inMailHdr) {
 
-	outPktHdr.from = inPktHdr.to;
-	outPktHdr.to = inPktHdr.from;
+	PacketHeader outPktHdr;
+	MailHeader outMailHdr;
+
+	outPktHdr.from = inPktHdr->to;
+	outPktHdr.to = inPktHdr->from;
 	outPktHdr.totalSlices = 1;
-	outPktHdr.sliceIndex = 0;
-	outMailHdr.from = inMailHdr.from;
-	outMailHdr.to = inMailHdr.from;
+	outPktHdr.sliceIndex = inPktHdr->sliceIndex;
+	outMailHdr.from = inMailHdr->from;
+	outMailHdr.to = inMailHdr->from;
 	outMailHdr.length = 5;
 	outMailHdr.totalSlices = 1;
-	outMailHdr.sliceIndex = 0;
+	outMailHdr.sliceIndex = inMailHdr->sliceIndex;
 	char ack[5];
-	sprintf(ack, "%5d", index);
+	sprintf(ack, "%5d", inMailHdr->sliceIndex);
 
 	if (DebugIsEnabled('n')) {
 		DEBUG('n', "Sending ACK=%s(atoi(ACK) = %d) ", ack, atoi(ack));

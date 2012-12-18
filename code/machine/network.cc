@@ -137,7 +137,16 @@ Network::Send(PacketHeader hdr, char* data)
     char* buffer = new char[MaxWireSize];
     *(PacketHeader *)buffer = hdr;
     bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
-	//lazySend(toName);
+
+	/*
+	 * emulate a data error.
+	 */
+	if (Random() % 100 >= chanceToWork * 100) {
+		DEBUG('n', "[NETWORK]: data error. \n");
+		int offset = sizeof(PacketHeader) + sizeof(MailHeader);
+		buffer[offset + Random() % hdr.length] ^= 1 << (Random() % 8);
+	}
+
     SendToSocket(sock, buffer, MaxWireSize, toName);
     delete []buffer;
 
@@ -152,7 +161,7 @@ Network::Receive(char* data)
     inHdr.length = 0;
     if (hdr.length != 0)
     	bcopy(inbox, data, hdr.length);
-    return hdr;
+	return hdr;
 }
 
 	
